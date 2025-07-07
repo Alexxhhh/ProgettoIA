@@ -101,7 +101,7 @@ problem_pddl = """
 )
 """
 
-with open("problem_cartoon_with_traps.pddl", "w") as f:
+with open("problem_cartoon.pddl", "w") as f:
     f.write(problem_pddl.strip())
 
 print("File 'problem_cartoon_with_traps.pddl' generato con successo.")
