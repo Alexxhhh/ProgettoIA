@@ -113,4 +113,4 @@ if __name__ == "__main__":
         if plan_exists(dom_fix, prob_fix):
             print("✅ Piano valido dopo correzione! File aggiornati.")
         else:
-            print("⚠️ Nemmeno la correzione produce un piano. Serve revisione manuale.")
+            print("⚠️ Nemmeno la correzione produce un piano. Serve revisione manuale.") 
