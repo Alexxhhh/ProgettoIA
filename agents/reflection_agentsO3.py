@@ -1,10 +1,10 @@
 # reflection_agent_gemini.py
 import os, re, subprocess, textwrap
 import google.generativeai as genai
-
+key="AIzaSyCp4OfTizTzSXNq67wHepzVfq-7TRsxUaI"
 # ------------------------------------------------------------------
 # Configura la chiave Gemini
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))   # ← assicurati che la variabile esista
+genai.configure(api_key=os.getenv(key))   # ← assicurati che la variabile esista
 
 # ------------------------------------------------------------------
 # Utilità file
