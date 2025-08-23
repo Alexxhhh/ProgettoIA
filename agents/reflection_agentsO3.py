@@ -1,10 +1,9 @@
 # reflection_agent_gemini.py
 import os, re, subprocess, textwrap
 import google.generativeai as genai
-key="AIzaSyCp4OfTizTzSXNq67wHepzVfq-7TRsxUaI"
 # ------------------------------------------------------------------
 # Configura la chiave Gemini
-genai.configure(api_key=os.getenv(key))   # ← assicurati che la variabile esista
+genai.configure(api_key="AIzaSyBY_olFJtT0xm-_Vl3LiQ1IZ0JRvoLM7NY")   # ← assicurati che la variabile esista
 
 # ------------------------------------------------------------------
 # Utilità file
@@ -18,7 +17,7 @@ def write_file(path: str, content: str):
 
 # ------------------------------------------------------------------
 # Chiamata a Gemini 1.5 Pro
-def call_gemini(prompt: str, model="gemini-1.5-pro-latest") -> str:
+def call_gemini(prompt: str, model="gemini-1.5-flash-latest") -> str:
     resp = genai.GenerativeModel(model).generate_content(prompt)
     return resp.text
 
@@ -95,22 +94,22 @@ def plan_exists(dom: str, prob: str) -> bool:
         )
         return "Solution found!" in out.stdout
     except FileNotFoundError:
-        print("⚠️  Fast Downward non trovato.")
+        print("Fast Downward non trovato.")
         return False
 
 # ------------------------------------------------------------------
 # MAIN
 if __name__ == "__main__":
-    lore = read_file("lore.txt")
-    print("🎯 Generazione PDDL da lore con Gemini…")
+    lore = read_file("lore/lore.txt")
+    print("Generazione PDDL da lore con Gemini…")
     dom, prob = generate_pddl_from_lore(lore)
 
     if plan_exists(dom, prob):
-        print("✅ Piano valido! File salvati.")
+        print("Piano valido! File salvati.")
     else:
-        print("❌ Nessun piano trovato. Avvio correzione…")
+        print("Nessun piano trovato. Avvio correzione…")
         dom_fix, prob_fix = correction_prompt(dom, prob)
         if plan_exists(dom_fix, prob_fix):
-            print("✅ Piano valido dopo correzione! File aggiornati.")
+            print("Piano valido dopo correzione! File aggiornati.")
         else:
-            print("⚠️ Nemmeno la correzione produce un piano. Serve revisione manuale.") 
+            print("Nemmeno la correzione produce un piano. Serve revisione manuale.") 
