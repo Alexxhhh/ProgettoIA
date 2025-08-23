@@ -1,0 +1,33 @@
+LORE: The Quest of the Cartoon Realms
+
+You are an adventurer entering a magical world made of enchanted cartoon-style zones. Your goal is to reach the Treasure Room at the center of the map, hidden in a place known as Unicorns_Vault.
+
+The journey begins in the starting room: Dragons_Gate. From there, you can choose to explore in any cardinal direction: North, South, East, or West.
+
+The world is filled with various types of trap rooms:
+- Spiky_Spine_Cavern and Prickly_Pits contain deadly spikes.
+- Arrow_Alley is filled with flying arrows.
+- Flame_Forge is engulfed in flames.
+- Trolls_Treetops is guarded by a massive gorilla.
+
+There are also safe rooms:
+- Goblin_Grotto
+- Pixie_Pond
+- Wizards_Watchtower
+- Bubble_Bog
+- Mushroom_Meadow
+- Rainbow_Ridge
+
+To reach the Treasure Room, you must first pass through one of several Riddle Rooms:
+- Riddle_Reef
+- Puzzle_Pond
+- Enigma_Edge
+- Mystery_Marsh
+
+Each Riddle Room contains a riddle. If answered correctly, you are granted a magical key. If you fail, you die and must restart the game. Some paths to the Treasure Room are blocked by locked doors, which can only be opened by the appropriate key.
+
+All paths are uni-directional and defined as magical “strade” (paths). Some of them are locked and require you to solve a riddle first. Some trap rooms may cause instant death if entered.
+
+The connections between rooms form a complex maze. The Treasure Room (Unicorns_Vault) is only reachable from one of the Riddle Rooms. 
+
+Your task: survive the traps, solve the riddles, collect the keys, and unlock the path to Unicorns_Vault. Good luck!
