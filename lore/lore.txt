@@ -1,33 +1,201 @@
-LORE: The Quest of the Cartoon Realms
+Treasure Quest Lore (structured YAML)
+——— Core Metadata ———
 
-You are an adventurer entering a magical world made of enchanted cartoon-style zones. Your goal is to reach the Treasure Room at the center of the map, hidden in a place known as Unicorns_Vault.
+title: Treasure Quest description: > A labyrinthine temple adventure where the player must navigate traps, solve puzzles, collect keys, and reach the Treasure Room while managing limited lives and items. max_lives: 3
 
-The journey begins in the starting room: Dragons_Gate. From there, you can choose to explore in any cardinal direction: North, South, East, or West.
+——— Inventory ———
 
-The world is filled with various types of trap rooms:
-- Spiky_Spine_Cavern and Prickly_Pits contain deadly spikes.
-- Arrow_Alley is filled with flying arrows.
-- Flame_Forge is engulfed in flames.
-- Trolls_Treetops is guarded by a massive gorilla.
+items:
 
-There are also safe rooms:
-- Goblin_Grotto
-- Pixie_Pond
-- Wizards_Watchtower
-- Bubble_Bog
-- Mushroom_Meadow
-- Rainbow_Ridge
+id: torch name: Torch description: Provides light in dark areas and scares bats.
 
-To reach the Treasure Room, you must first pass through one of several Riddle Rooms:
-- Riddle_Reef
-- Puzzle_Pond
-- Enigma_Edge
-- Mystery_Marsh
+id: water_cloth name: Water‑Soaked Cloth description: Damp cloth that filters poisonous gas.
 
-Each Riddle Room contains a riddle. If answered correctly, you are granted a magical key. If you fail, you die and must restart the game. Some paths to the Treasure Room are blocked by locked doors, which can only be opened by the appropriate key.
+id: shield name: Shield description: Sturdy shield able to block arrows.
 
-All paths are uni-directional and defined as magical “strade” (paths). Some of them are locked and require you to solve a riddle first. Some trap rooms may cause instant death if entered.
+id: steel_pole name: Steel Pole description: Long pole capable of operating distant levers.
 
-The connections between rooms form a complex maze. The Treasure Room (Unicorns_Vault) is only reachable from one of the Riddle Rooms. 
+——— Collectible Keys ———
 
-Your task: survive the traps, solve the riddles, collect the keys, and unlock the path to Unicorns_Vault. Good luck!
+keys:
+
+id: 1 # opens doors tagged “1” location_room: 11
+
+id: 2 location_room: 14
+
+id: 3 location_room: 8
+
+id: 4 location_room: 3
+
+——— Trap Rooms solved with Items ———
+
+trap_items:
+
+id: TO1 name: Bat Room solution_item: torch fail_effect: lose_life
+
+id: TO2 name: Gas Room solution_item: water_cloth fail_effect: lose_life
+
+id: TO3 name: Arrow Room solution_item: shield fail_effect: lose_life
+
+id: TO4 name: Flooding Room solution_item: steel_pole fail_effect: lose_life
+
+——— Puzzle Trap Rooms ———
+
+puzzles:
+
+id: 5 riddle: | You find me in the present, but I cannot be touched. Silent step, no one sees me coming. I can heal or destroy. Who am I? options: [Fire, Wind, Time, Shadow] answer: Time fail_effect: lose_life
+
+id: 6 riddle: | Brothers run together, No one ever leaves their own path. Sometimes they are calm, sometimes at war, But always they chase each other endlessly. options: [Seasons, Rivers, Winds, Days] answer: Seasons fail_effect: lose_life
+
+id: 7 riddle: | I have eyes but I cannot see, A mouth but I cannot speak, A human form but I am not. Who am I? options: [Statue, Golem, Mummy, Skull] answer: Statue fail_effect: lose_life
+
+id: 8 riddle: | The more you remove, the bigger I become. I live where the light dares not enter. What am I? options: [Night, Darkness, Shadow, Silence] answer: Darkness fail_effect: lose_life
+
+id: antechamber riddle: "Complex multi‑step puzzle that must be solved on the first attempt." answer: unspecified fail_effect: instant_death
+
+——— Rooms ———
+
+rooms:
+
+id: 1 # Entrance code: entrance label: Entrance type: start
+
+id: 2 # TO1 code: bat_room label: Bat Room type: trap_item trap_id: TO1
+
+id: 3 # key‑4 code: key_room_4 label: Key Room 4 type: key_room key_id: 4
+
+id: 4 code: puzzle_room_5 label: Puzzle Room 5 type: trap_puzzle puzzle_id: 5
+
+id: 5 code: gas_room label: Gas Room type: trap_item trap_id: TO2
+
+id: 6 code: life_room_6 label: Life Room 6 type: safe_life life_change: +1
+
+id: 7 code: puzzle_room_6 label: Puzzle Room 6 type: trap_puzzle puzzle_id: 6
+
+id: 8 code: key_room_3 label: Key Room 3 type: key_room key_id: 3
+
+id: 9 code: life_room_9 label: Life Room 9 type: safe_life life_change: +1
+
+id: 10 code: arrow_room label: Arrow Room type: trap_item trap_id: TO3
+
+id: 11 code: key_room_1 label: Key Room 1 type: key_room key_id: 1
+
+id: 12 code: puzzle_room_7 label: Puzzle Room 7 type: trap_puzzle puzzle_id: 7
+
+id: 13 code: puzzle_room_8 label: Puzzle Room 8 type: trap_puzzle puzzle_id: 8
+
+id: 14 code: key_room_2 label: Key Room 2 type: key_room key_id: 2
+
+id: 15 code: flood_room label: Flooding Room type: trap_item trap_id: TO4
+
+id: 16 code: treasure_antechamber label: Treasure Antechamber type: trap_puzzle puzzle_id: antechamber
+
+id: 17 code: treasure_room label: Treasure Room type: goal
+
+——— Connections (corridors) ———
+key_required omitted ⇒ corridor is free.
+
+connections:
+
+{from: 1, to: 2, dir: N}
+
+{from: 1, to: 13, dir: E}
+
+{from: 1, to: 12, dir: S}
+
+{from: 2, to: 1, dir: S}
+
+{from: 2, to: 3, dir: E}
+
+{from: 3, to: 2, dir: W}
+
+{from: 3, to: 4, dir: E}
+
+{from: 4, to: 3, dir: W}
+
+{from: 4, to: 14, dir: S}
+
+{from: 4, to: 5, dir: E, key_required: 1}
+
+{from: 5, to: 4, dir: W, key_required: 1}
+
+{from: 5, to: 15, dir: S, key_required: 1}
+
+{from: 5, to: 6, dir: E}
+
+{from: 6, to: 5, dir: W}
+
+{from: 6, to: 7, dir: S}
+
+{from: 7, to: 15, dir: W, key_required: 3}
+
+{from: 7, to: 8, dir: S}
+
+{from: 8, to: 9, dir: W}
+
+{from: 9, to: 10, dir: W, key_required: 4}
+
+{from: 9, to: 8, dir: E}
+
+{from: 9, to: 15, dir: N, key_required: 2}
+
+{from: 10, to: 11, dir: W}
+
+{from: 10, to: 9, dir: E, key_required: 4}
+
+{from: 10, to: 14, dir: N}
+
+{from: 11, to: 13, dir: W}
+
+{from: 11, to: 10, dir: E}
+
+{from: 12, to: 14, dir: E}
+
+{from: 12, to: 1, dir: N}
+
+{from: 13, to: 1, dir: W}
+
+{from: 13, to: 11, dir: S}
+
+{from: 13, to: 14, dir: E}
+
+{from: 14, to: 13, dir: W}
+
+{from: 14, to: 12, dir: S}
+
+{from: 14, to: 10, dir: E}
+
+{from: 14, to: 4, dir: N}
+
+{from: 15, to: 5, dir: N, key_required: 1}
+
+{from: 15, to: 7, dir: E, key_required: 3}
+
+{from: 15, to: 9, dir: S, key_required: 2}
+
+{from: 15, to: 16, dir: W}
+
+{from: 16, to: 17, dir: N}
+
+——— Actions (abstract STRIPS‑style) ———
+
+actions:
+
+id: move params: [from, to, dir] pre: | (at ?from) ∧ (connected ?from ?to ?dir) ∧ (¬door_locked ?from ?to) eff: | (not (at ?from)) ∧ (at ?to)
+
+id: unlock_door params: [from, to, key] pre: | (at ?from) ∧ (door_locked ?from ?to) ∧ (has_key ?key) ∧ (key_opens ?key ?from ?to) eff: | (not (door_locked ?from ?to))
+
+id: take_key params: [key, room] pre: | (at ?room) ∧ (key_in_room ?key ?room) eff: | (has_key ?key) ∧ (not (key_in_room ?key ?room))
+
+id: use_item_trap params: [item, room] pre: | (at ?room) ∧ (trap_item_room ?room ?item) ∧ (has_item ?item) ∧ (trap_active ?room) eff: | (not (trap_active ?room))
+
+id: solve_puzzle params: [puzzle, room] pre: | (at ?room) ∧ (puzzle_in_room ?puzzle ?room) ∧ (answer_known ?puzzle) ∧ (trap_active ?room) eff: | (not (trap_active ?room))
+
+id: gain_life params: [room] pre: | (at ?room) ∧ (safe_life_room ?room) ∧ (< lives_max lives>) eff: | (lives_inc)
+
+id: lose_life params: [] pre: | (true) eff: | (lives_dec)
+
+——— Initial & Goal States ———
+
+initial_state: location: 1 lives: 3 keys_possessed: [] items_possessed: [torch, water_cloth, shield, steel_pole] cleared_traps: []
+
+goal_condition: | (at 17) ∧ (lives_gt 0)
