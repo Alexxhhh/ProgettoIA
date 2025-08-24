@@ -2,7 +2,7 @@
   (:domain treasure_quest)
   (:objects 
     n s e w - direction
-    entrance bat_room treasure_room key_room_1 key_room_2 key_room_3 key_room_4 gas_room life_room_6 puzzle_room_5 puzzle_room_6 life_room_9 arrow_room puzzle_room_7 puzzle_room_8 flood_room treasure_antechamber - room
+    entrance bat_room treasure_room key_room_1 key_room_2 key_room_3 key_room_4 gas_room life_room_6 puzzle_room_5 puzzle_room_6 puzzle_room_7 puzzle_room_8 life_room_9 arrow_room flood_room treasure_antechamber - room
     k1 k2 k3 k4 - key
     torch water_cloth shield steel_pole - item
     p5 p6 p7 p8 p_ante - puzzle
@@ -16,11 +16,11 @@
     (trap_item_room gas_room water_cloth) (trap_active gas_room)
     (trap_item_room arrow_room shield) (trap_active arrow_room)
     (trap_item_room flood_room steel_pole) (trap_active flood_room)
-    (puzzle_in_room p5 puzzle_room_5) (trap_active puzzle_room_5) (answer_known p5)
-    (puzzle_in_room p6 puzzle_room_6) (trap_active puzzle_room_6) (answer_known p6)
-    (puzzle_in_room p7 puzzle_room_7) (trap_active puzzle_room_7) (answer_known p7)
-    (puzzle_in_room p8 puzzle_room_8) (trap_active puzzle_room_8) (answer_known p8)
-    (puzzle_in_room p_ante treasure_antechamber) (trap_active treasure_antechamber) (answer_known p_ante)
+    (puzzle_in_room p5 puzzle_room_5) (answer_known p5) (trap_active puzzle_room_5)
+    (puzzle_in_room p6 puzzle_room_6) (answer_known p6) (trap_active puzzle_room_6)
+    (puzzle_in_room p7 puzzle_room_7) (answer_known p7) (trap_active puzzle_room_7)
+    (puzzle_in_room p8 puzzle_room_8) (answer_known p8) (trap_active puzzle_room_8)
+    (puzzle_in_room p_ante treasure_antechamber) (answer_known p_ante) (trap_active treasure_antechamber)
     (connected entrance bat_room n) (connected bat_room entrance s)
     (connected entrance puzzle_room_7 e) (connected puzzle_room_7 entrance w)
     (connected entrance puzzle_room_8 s) (connected puzzle_room_8 entrance n)

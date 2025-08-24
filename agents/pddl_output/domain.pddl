@@ -1,5 +1,5 @@
 (define (domain treasure_quest)
-  (:requirements :strips :typing)
+  (:requirements :strips :typing :negative-preconditions)
   (:types room key item puzzle direction)
   (:predicates
     (at ?r - room) (connected ?a - room ?b - room ?d - direction)
@@ -28,12 +28,20 @@
     :precondition (and (at ?r) (puzzle_in_room ?p ?r) (answer_known ?p)
                        (trap_active ?r) (not dead))
     :effect       (and (not (trap_active ?r))) )
-  (:action lose_life3 :parameters () :precondition (life3)
-    :effect (and (not life3)) )
-  (:action lose_life2 :parameters ()
-    :precondition (and (not life3) life2)
-    :effect (and (not life2)) )
-  (:action lose_life1 :parameters ()
-    :precondition (and (not life3) (not life2) life1)
-    :effect (and (not life1) dead) )
+(:action lose_life3
+  :parameters ()
+  :precondition (life3)
+  :effect (not (life3))
+)
+
+(:action lose_life2
+  :parameters ()
+  :precondition (and (not (life3)) (life2))
+  :effect (not (life2))
+)
+
+(:action lose_life1
+  :parameters ()
+  :precondition (and (not (life3)) (not (life2)) (life1))
+  :effect (and (not (life1)) (dead))
 )
