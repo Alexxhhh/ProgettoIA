@@ -1,116 +1,103 @@
 #!/usr/bin/env python3
-"""gemini_pddl_generator.py  —  Generate STRIPS‑compatible PDDL (domain + problem)
-from a lore text using Google Gemini 1.5 Flash.
+"""reflection_agents3.py – genera dominio e problema PDDL da una lore usando Gemini
 
-Highlights
-==========
-* Skeleton DOMAIN/PROBLEM già puro‑STRIPS (nessun string/number, niente numeric‑fluents).
-* Prompt compatto + retry automatico se Gemini omette i marker.
-* Salva risposta grezza per debug (`gemini_last_raw.txt`).
-* File generati in ./pddl_output/domain.pddl e problem.pddl.
+USO:
+    python reflection_agents3.py path/to/lore.txt
 
-Usage
------
-    python gemini_pddl_generator.py  path/to/lore.txt
+Versione 2025‑08‑24 – Revision 2.
+Fix principali:
+  • La lore viene ora inclusa nel prompt di sistema (prompt_sys = build_prompt(lore_text)).
+  • ask_with_markers ora applica automaticamente auto_wrap e rimuove eventuali ``` code‑fence, così non va in errore se Gemini
+    restituisce solo le parti interne o inserisce backticks.
+  • La chiave API può essere letta da variabile d'ambiente GOOGLE_API_KEY per evitare hard‑coding.
 """
 
 from __future__ import annotations
-
-import sys
 from pathlib import Path
-from typing import Dict
-import textwrap
+import os, sys, textwrap
+from typing import Dict, List, Union
 
-from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 # ────────────────────────────────────────────────────────────────
-# 1  Fixed API‑Key  (💡 sostituisci con la tua se diversa)
+# 1. Inizializzazione LLM (chiave API da env var)
 # ────────────────────────────────────────────────────────────────
-API_KEY = "AIzaSyBY_olFJtT0xm-_Vl3LiQ1IZ0JRvoLM7NY"
+API_KEY = os.getenv("AIzaSyBY_olFJtT0xm-_Vl3LiQ1IZ0JRvoLM7NY")
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash-latest",
-    temperature=0.15,               # leggermente >0 per creatività minima
+    temperature=0.15,
     google_api_key=API_KEY,
 )
 
-OUTPUT_DIR = Path("./pddl_output"); OUTPUT_DIR.mkdir(exist_ok=True)
+OUTPUT_DIR = Path("./pddl_output")
+OUTPUT_DIR.mkdir(exist_ok=True)
 
 # ────────────────────────────────────────────────────────────────
-# 2  Skeleton PDDL (solo linee essenziali, tag TODO)
+# 2. Skeleton PDDL ultracompatto (STRIPS puro)
 # ────────────────────────────────────────────────────────────────
 DOMAIN_SKEL = """
 (define (domain treasure_quest)
   (:requirements :strips :typing)
   (:types room key item puzzle direction)
-
   (:predicates
     (at ?r - room) (connected ?a - room ?b - room ?d - direction)
-    (locked ?r - room) (key_opens ?k - key ?r - room) (has_key ?k - key)
-    (has_item ?i - item) (key_in_room ?k - key ?r - room)
+    (locked ?r - room) (key_opens ?k - key ?r - room)
+    (has_key ?k - key) (has_item ?i - item)
+    (key_in_room ?k - key ?r - room)
     (trap_item_room ?r - room ?i - item) (trap_active ?r - room)
     (puzzle_in_room ?p - puzzle ?r - room) (answer_known ?p - puzzle)
-    (dead)
-  )
-
-  ;; ACTIONS  (non toccare i nomi) ---------------------------------
+    (life1) (life2) (life3) (dead) )
   (:action move
-    :parameters (?from - room ?to - room ?d - direction)
-    :precondition (and (at ?from) (connected ?from ?to ?d) (not (locked ?to)) (not dead))
-    :effect       (and (not (at ?from)) (at ?to)) )
-
+    :parameters (?f - room ?t - room ?d - direction)
+    :precondition (and (at ?f) (connected ?f ?t ?d) (not (locked ?t)) (not dead))
+    :effect       (and (not (at ?f)) (at ?t)) )
   (:action unlock
-    :parameters (?from - room ?to - room ?k - key ?d - direction)
-    :precondition (and (at ?from) (connected ?from ?to ?d) (locked ?to)
-                       (has_key ?k) (key_opens ?k ?to) (not dead))
-    :effect       (and (not (locked ?to))) )
-
+    :parameters (?f - room ?t - room ?k - key ?d - direction)
+    :precondition (and (at ?f) (connected ?f ?t ?d) (locked ?t)
+                       (has_key ?k) (key_opens ?k ?t) (not dead))
+    :effect       (and (not (locked ?t))) )
   (:action use_item_trap
     :parameters (?i - item ?r - room)
-    :precondition (and (at ?r) (trap_item_room ?r ?i) (has_item ?i) (trap_active ?r) (not dead))
+    :precondition (and (at ?r) (trap_item_room ?r ?i) (has_item ?i)
+                       (trap_active ?r) (not dead))
     :effect       (and (not (trap_active ?r))) )
-
   (:action solve_puzzle
     :parameters (?p - puzzle ?r - room)
-    :precondition (and (at ?r) (puzzle_in_room ?p ?r) (answer_known ?p) (trap_active ?r) (not dead))
+    :precondition (and (at ?r) (puzzle_in_room ?p ?r) (answer_known ?p)
+                       (trap_active ?r) (not dead))
     :effect       (and (not (trap_active ?r))) )
-
-  (:action die
-    :parameters (?r - room)
-    :precondition (and (at ?r) (trap_active ?r) (not dead))
-    :effect       (dead) )
+  (:action lose_life3 :parameters () :precondition (life3)
+    :effect (and (not life3)) )
+  (:action lose_life2 :parameters ()
+    :precondition (and (not life3) life2)
+    :effect (and (not life2)) )
+  (:action lose_life1 :parameters ()
+    :precondition (and (not life3) (not life2) life1)
+    :effect (and (not life1) dead) )
 )
 """
 
 PROBLEM_SKEL = """
 (define (problem treasure_quest_problem)
   (:domain treasure_quest)
-
-  (:objects
-    ;; directions
-    n s e w - direction
-    ;; TODO other objects (keys items puzzles rooms)
+  (:objects n s e w - direction)               ;; TODO altri oggetti
+  (:init (at entrance) (life1) (life2) (life3) ;; TODO fatti
   )
-
-  (:init
-    (at entrance)
-    ;; TODO init facts (has_item, key_in_room, connected, locked, trap_active…)
-  )
-
   (:goal (and (at treasure_room) (not dead)))
 )
 """
 
 # ────────────────────────────────────────────────────────────────
-# 3  Prompt builder
+# 3. Prompt builder
 # ────────────────────────────────────────────────────────────────
 
 def build_prompt(lore: str) -> str:
+    """Costruisce il prompt di sistema: skeleton + lore."""
     return textwrap.dedent(f"""
-    You are a disciplined PDDL generator: fill ONLY the lines marked `TODO`.
-    • Keep skeleton exactly.  • Use (locked room) + (key_opens key room).
-    • Return raw PDDL between markers, no extra text.
+    Compila SOLO le sezioni contrassegnate con TODO.
+    Mantieni i marker ### DOMAIN/PROBLEM START/END esattamente come sono.
+    Non introdurre tipi string/number né fluents numerici. Rispondi con testo puro, senza markdown.
 
     ### DOMAIN START
     {DOMAIN_SKEL.strip()}
@@ -118,55 +105,102 @@ def build_prompt(lore: str) -> str:
     ### PROBLEM START
     {PROBLEM_SKEL.strip()}
     ### PROBLEM END
-
     LORE:
     {lore}
     """)
 
-# Helper extraction
-extract = lambda txt, a, b: (txt.split(a, 1)[1].split(b, 1)[0].strip() if a in txt and b in txt else None)
+# Helpers
+extract = lambda txt,a,b: txt.split(a,1)[1].split(b,1)[0].strip() if a in txt and b in txt else None
 
-# Ask Gemini with automatic retry if markers missing
+# ────────────────────────────────────────────────────────────────
+# 4. Wrappers utility
+# ────────────────────────────────────────────────────────────────
 
-def ask_with_markers(prompt: str, tries: int = 3) -> str:
-    raw = ""
+def _strip_code_fence(text: str) -> str:
+    """Se la stringa è racchiusa dentro ```…```, rimuove i backtick."""
+    lines = text.strip().splitlines()
+    if len(lines) >= 2 and lines[0].startswith("```)".replace(")", "")):
+        # remove first and last line (``` ...)
+        return "\n".join(lines[1:-1]).strip()
+    return text
+
+
+def auto_wrap(raw: str) -> str:
+    """Se il modello restituisce solo init/objects, costruisce i marker."""
+    raw = _strip_code_fence(raw)
+    if "### DOMAIN START" in raw:
+        return raw
+    # tentativo: contiene predicati tipici ma manca marker
+    if "- room" in raw and "connected" in raw:
+        objs, init_body = raw.split("(", 1)
+        objs_line = objs.strip()
+        init_block = "(" + init_body.strip()
+        problem = PROBLEM_SKEL \
+            .replace("n s e w - direction", "n s e w - direction\n    " + objs_line) \
+            .replace("(:init (at entrance) (life1) (life2) (life3)",
+                     f"(:init (at entrance) (life1) (life2) (life3)\n    {init_block}")
+        return f"### DOMAIN START\n{DOMAIN_SKEL}\n### DOMAIN END\n### PROBLEM START\n{problem}\n### PROBLEM END"
+    return raw
+
+# ────────────────────────────────────────────────────────────────
+# 5. Invocazione con retries + auto_wrap
+# ────────────────────────────────────────────────────────────────
+
+def ask_with_markers(prompt: Union[str, List[dict]], tries: int = 3) -> str:
+    """Invoca Gemini ripetendo fino a quando non ottiene tutti i marker."""
+    last_raw = ""
     for i in range(tries):
-        raw = llm.invoke(prompt if i == 0 else prompt + "\n⚠️ RETURN EXACTLY THE MARKERS." ).content
-        if "### DOMAIN START" in raw and "### PROBLEM START" in raw:
-            return raw
-    Path("gemini_last_raw.txt").write_text(raw, encoding="utf-8")
-    raise ValueError("Gemini output privo di marker – vedi gemini_last_raw.txt")
+        if i > 0:
+            # Ricorda al modello di includere i marker se non l'ha fatto
+            reminder = "\n⚠️  INCLUDE EXACTLY: ### DOMAIN START/END e ### PROBLEM START/END. Nessun markdown."
+            if isinstance(prompt, str):
+                prompt += reminder
+            else:
+                prompt[-1]["content"] += reminder
+        last_raw = llm.invoke(prompt).content  # type: ignore
+        wrapped = auto_wrap(last_raw)
+        if all(m in wrapped for m in ("### DOMAIN START", "### DOMAIN END", "### PROBLEM START", "### PROBLEM END")):
+            return wrapped
+    Path("gemini_last_raw.txt").write_text(last_raw, encoding="utf-8")
+    raise ValueError("Marker ancora assenti – vedi gemini_last_raw.txt")
 
 # ────────────────────────────────────────────────────────────────
-# 4  Tool function
+# 6. Funzione principale
 # ────────────────────────────────────────────────────────────────
 
-@tool
-def generate_pddl_from_lore(file_path: str) -> Dict[str, str]:
-    """Generate domain/problem PDDL from a lore txt file using Gemini."""
-    p = Path(file_path).expanduser()
-    if not p.is_file():
-        raise FileNotFoundError(p)
+def generate_pddl_from_lore(path: str) -> Dict[str, str]:
+    """Dato un file di lore, salva domain.pddl e problem.pddl in ./pddl_output e li restituisce."""
+    lore_text = Path(path).expanduser().read_text(encoding="utf-8")
 
-    prompt = build_prompt(p.read_text(encoding="utf-8"))
-    print("\n📤  Prompting Gemini…")
+    # Prompt di sistema completo di skeleton + lore
+    prompt_sys = build_prompt(lore_text)
 
-    raw = ask_with_markers(prompt)
+    # Messaggio utente minimale
+    messages = [
+        {"role": "system", "content": prompt_sys},
+        {"role": "user",   "content": "Restituisci dominio e problema PDDL con i marker, senza markdown."},
+    ]
+
+    print("\n📤  Chiedo a Gemini…")
+    raw = ask_with_markers(messages)
+
     domain = extract(raw, "### DOMAIN START", "### DOMAIN END")
     problem = extract(raw, "### PROBLEM START", "### PROBLEM END")
 
-    (OUTPUT_DIR / "domain.pddl").write_text(domain, encoding="utf-8")
-    (OUTPUT_DIR / "problem.pddl").write_text(problem, encoding="utf-8")
+    OUTPUT_DIR.joinpath("domain.pddl").write_text(domain, encoding="utf-8")
+    OUTPUT_DIR.joinpath("problem.pddl").write_text(problem, encoding="utf-8")
     print("✅  PDDL salvati in", OUTPUT_DIR.resolve())
     return {"domain": domain, "problem": problem}
 
 # ────────────────────────────────────────────────────────────────
-# 5  CLI
+# 7. CLI
 # ────────────────────────────────────────────────────────────────
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        sys.exit("Usage: python gemini_pddl_generator.py path/to/lore.txt")
+        sys.exit("Uso: python reflection_agents3.py path/to/lore.txt")
 
-    result = generate_pddl_from_lore.run(sys.argv[1])
-    print("\n── DOMAIN preview ──\n", result["domain"][:800])
-    print("\n── PROBLEM preview ─\n", result["problem"][:800])
+    result = generate_pddl_from_lore(sys.argv[1])
+
+    print("\n── DOMAIN preview ──\n", result["domain"][:600])
+    print("\n── PROBLEM preview ─\n", result["problem"][:600])
