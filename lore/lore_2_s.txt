@@ -1,0 +1,205 @@
+# Treasure Quest – Lore con sistema vite booleano
+
+## 1. Premessa
+Sei un avventuriero all’interno di un antico tempio labirintico. Parti dalla stanza 1 (entrance) e devi raggiungere la stanza 17 (treasure_room) senza esaurire le vite.
+
+## 2. Sistema vite (STRIPS)
+Predicati iniziali:
+  (life1) (life2) (life3)
+
+Azioni fatali consumano le vite nell’ordine:
+  lose_life3  – pre: (life3)                          → eff: ¬life3
+  lose_life2  – pre: ¬life3 ∧ (life2)                 → eff: ¬life2
+  lose_life1  – pre: ¬life3 ∧ ¬life2 ∧ (life1)        → eff: ¬life1 ∧ dead
+
+Goal globale: (and (at treasure_room) (not dead))
+
+## 3. Oggetti di inventario
+Torcia       	– per i pipistrelli (bat_room, id 2)
+Panno_bagnato 	– per il gas (gas_room, id 5)
+Scudo      	– per le frecce (arrow_room, id 10)
+Asta_di_ferro   – per la leva (flood_room, id 15)
+
+## 4. Chiavi
+k1 in 11LK1 (room 11)  → sblocca connessioni tra room 4 and room 5 , room 5 and room 4 ,room 5 and room 15, room 15 and room 5  (5)
+k2 in 14LK2 (room 14)  → sblocca connessoni tra room 9 and room 15 , room 15 and room 9
+k3 in 8LK3 (room 8)   → sblocca connessioni tra room 7 and room 15 , room 15 and room  7
+k4 in 3LK4 (room 3)   → sblocca connessioni tra room 10 and 9 , room 9 and room 10
+
+## 5. Puzzle
+p2 - 2TO_Torcia (room 2)
+   Question: La stanza è piena di pipistrelli, che oggetto intendi usare per attraversarla?
+   Object: Torcia
+p4 – 4TE_Tempo (room 4)
+   Question: Mi trovi nel presente, ma non posso essere toccato. Passo silenzioso, nessuno mi vede arrivare. Posso guarire o distruggere. Chi sono?
+   Answer: Tempo
+p5 - 5TO_Panno_bagnato (room 5)
+   Question: Hai azionato una trappola e la stanza si sta riempiendo di gas! Che oggetto vuoi usare?
+   Object: Panno_bagnato
+p7 – 7TE_Stagioni (room 7)
+   Question: Fratelli corrono insieme, nessuno lascia mai il proprio cammino. A volte sono calmi, a volte in guerra, ma sempre si inseguono all'infinito.
+   Answer: Stagioni
+p10 - 10TO_Scudo (room 10)
+   Question: La stanza è piena di buchi sulle pareti. Che oggetto vuoi usare per proseguire?
+   Object: Scudo
+p12 – 12TE_Statua (room 12)
+   Question : Ho occhi ma non posso vedere, una bocca ma non posso parlare, una forma umana ma non lo sono. Chi sono?
+   Answer: Statua
+p13 – 13TE_Oscurita (room 13)
+   Question : Più passa il tempo, più divento grande. Vivo dove la luce non osa entrare. Un giorno conquistero' anche l'universo. Cosa sono?
+   Answer: Oscurita'
+p15 - 15TO_Asta_di_ferro (room 15)
+   Question: Le porte si sono chiuse e la stanza si sta riempiendo d'acqua! Vedi una leva quasi sommersa, che oggetto vuoi usare?
+   Object: Asta_di_ferro
+p16 16_treasure_antechamber (room 16), single try
+   Question: chi è che al mattino cammina con 4 zampe a mezzogiorno con 2 e la sera con 3?
+   Answer: Uomo
+
+## 6. Mappa stanze (id – nome – tipo)
+1  entrance                 start
+2  2TO_Torcia               trap-puzzle p2
+3  3LK4 	            key4
+4  4TE_Tempo                trap-puzzle p4
+5  5TO_Gas                  trap-puzzle p5
+6  6LV		            safe
+7  7TE_Stagioni             trap-puzzle p7
+8  8LK3                     key3
+9  9LV                      safe
+10 10TO_Scudo               trap-puzzle p10
+11 11LK1	            key1
+12 12TE_Statua              trap-puzzle p12
+13 13TE_Oscurita	    trap-puzzle p13
+14 14LK2 		    key2
+15 15TO_Asta_di_ferro       trap-puzzle p15
+16 16_treasure_antechamber  trap-puzzle p16
+17 treasure_room            goal
+
+## 7. Connessioni (partenza, arrivo, token direzione n/s/e/w, chiave richiesta (opzionale))
+connected entrance 			2TO_Torcia		n	no
+connected entrance 			13TE_Oscurita		e	no
+connected entrance 			12TE_Statua		s	no
+connected 2TO_Torcia			3LK4			e	no
+connected 2TO_Torcia			entrance 		s	no
+connected 3LK4				4TE_Tempo		e	no
+connected 3LK4				2TO_Torcia		w	no
+connected 4TE_Tempo			5TO_Gas			e	k1
+connected 4TE_Tempo			14LK2			s	no
+connected 4TE_Tempo			3LK4			w	no
+connected 5TO_Gas			6LV			e	no
+connected 5TO_Gas			15TO_Asta_di_ferro	s	k1
+connected 5TO_Gas			4TE_Tempo		w	k1
+connected 6LV				7TE_Stagioni		s	no
+connected 6LV				5TO_Gas			w	no
+connected 7TE_Stagioni			6LV			n	no
+connected 7TE_Stagioni			8LK3			s	no
+connected 7TE_Stagioni			15TO_Asta_di_ferro	w	k3
+connected 8LK3				7TE_Stagioni		n	no
+connected 8LK3				9LV			w	no
+connected 9LV				15TO_Asta_di_ferro	n	k2
+connected 9LV				8LK3			e	no
+connected 9LV				10TO_Scudo		w	k4
+connected 10TO_Scudo			14LK2			n	no
+connected 10TO_Scudo			9LV			e	k4
+connected 10TO_Scudo			11LK1			w	no
+connected 11LK1				10TO_Scudo		e	no
+connected 11LK1				13TE_Oscurita		w	no
+connected 12TE_Statua			entrance		n	no
+connected 12TE_Statua			14LK2			e	no
+connected 13TE_Oscurita			14LK2			e	no
+connected 13TE_Oscurita			11LK1			s	no
+connected 13TE_Oscurita			entrance		w	no
+connected 14LK2				4TE_Tempo		n	no
+connected 14LK2				10TO_Scudo		e	no
+connected 14LK2				12TE_Statua		s	no
+connected 14LK2				13TE_Oscurita		w	no
+connected 15TO_Asta_di_ferro		5TO_Gas			n	k1
+connected 15TO_Asta_di_ferro		7TE_Stagioni		e	k3
+connected 15TO_Asta_di_ferro		9LV			s	k2
+connected 15TO_Asta_di_ferro		16_treasure_antechamber	w	no
+connected 16_treasure_antechamber	15TO_Asta_di_ferro	e	no
+connected 16_treasure_antechamber	treasure_room		w	no
+
+## 8. Fatti iniziali minimi (estratto)
+(:init
+    ;; posizione iniziale
+    (at entrance)
+
+    ;; vite booleane
+    (life1) (life2) (life3)
+
+    ;; inventario iniziale
+    (has_item Torcia)       ;; torcia
+    (has_item Panna_bagnato) ;; panno bagnato
+    (has_item Scudo)      ;; scudo
+    (has_item Asta_di_ferro)  ;; asta di ferro
+
+    ;; chiavi nelle stanze
+    (key_in_room k1 11LK1 (room 11))
+    (key_in_room k2 14LK2 (room 14))
+    (key_in_room k3 8LK3 (room 8))
+    (key_in_room k4 3LK4 (room 3))
+
+    ;; connessioni sempre aperte
+
+    (connected entrance 2TO_Torcia n)
+    (connected entrance 13TE_Oscurita e)
+    (connected entrance 12TE_Statua	s)
+    (connected 2TO_Torcia 3LK4 e)
+    (connected 2TO_Torcia entrance s)
+    (connected 3LK4 4TE_Tempo e)
+    (connected 3LK4 2TO_Torcia w)
+    (connected 4TE_Tempo 14LK2 s)
+    (connected 4TE_Tempo 3LK4 w)
+    (connected 5TO_Gas 6LV e)
+    (connected 6LV 7TE_Stagioni s)
+    (connected 6LV 5TO_Gas w)
+    (connected 7TE_Stagioni 6LV n)
+    (connected 7TE_Stagioni 8LK3 s)
+    (connected 8LK3 7TE_Stagioni n)
+    (connected 8LK3 9LV w)
+    (connected 9LV 8LK3 e)
+    (connected 10TO_Scudo 14LK2 n)
+    (connected 10TO_Scudo 11LK1 w)
+    (connected 11LK1 10TO_Scudo e)
+    (connected 11LK1 13TE_Oscurita w)
+    (connected 12TE_Statua entrance n)
+    (connected 12TE_Statua 14LK2 e)
+    (connected 13TE_Oscurita 14LK2 e)
+    (connected 13TE_Oscurita 11LK1 s)
+    (connected 13TE_Oscurita entrance w)
+    (connected 14LK2 4TE_Tempo n)
+    (connected 14LK2 10TO_Scudo e)
+    (connected 14LK2 12TE_Statua s)
+    (connected 14LK2 13TE_Oscurita w)
+    (connected 15TO_Asta_di_ferro 16_treasure_antechamber w)
+    (connected 16_treasure_antechamber 15TO_Asta_di_ferro e)
+    (connected 16_treasure_antechamber treasure_room w)
+
+    ;; connessioni bloccate (richiedono chiave)
+
+    (key_required 4TE_Tempo 5TO_Gas e k1)
+    (key_required 5TO_Gas 15TO_Asta_di_ferro s k1)
+    (key_required 5TO_Gas 4TE_Tempo w k1)
+    (key_required 7TE_Stagioni 15TO_Asta_di_ferro w k3)
+    (key_required 9LV 15TO_Asta_di_ferro n k2)
+    (key_required 9LV 10TO_Scudo w k4)
+    (key_required 10TO_Scudo 9LV e k4)
+    (key_required 15TO_Asta_di_ferro 5TO_Gas n k1)
+    (key_required 15TO_Asta_di_ferro 7TE_Stagioni e k3)
+    (key_required 15TO_Asta_di_ferro 9LV s k2)
+
+    ;; trappole basate su oggetti
+    (puzzle_in_room p2 2TO_Torcia)        	(trap_active 2TO_Torcia)		(answer_known p2)
+    (puzzle_in_room p5 5TO_Panno_bagnato)  	(trap_active 5TO_Panno_bagnato)		(answer_known p5)
+    (puzzle_in_room p10 10TO_Scudo)     	(trap_active 10TO_Scudo)		(answer_known p10)
+    (puzzle_in_room p5 15TO_Asta_di_ferro) 	(trap_active 15TO_Asta_di_ferro)	(answer_known p15)
+
+    ;; stanze con puzzle
+    (puzzle_in_room p4 4TE_Tempo)      		(trap_active 4TE_Tempo)      		(answer_known p4)
+    (puzzle_in_room p7 7TE_Stagioni)       	(trap_active 7TE_Stagioni)  	    	(answer_known p7)
+    (puzzle_in_room p12 12TE_Statua)       	(trap_active 12TE_Statua)       	(answer_known p12)
+    (puzzle_in_room p13 13TE_Oscurita)      	(trap_active 13TE_Oscurita)       	(answer_known p13)
+    (puzzle_in_room p16 16_treasure_antechamber)(trap_active 16_treasure_antechamber)	(answer_known p16)
+)
+Goal:
+(:goal (and (at treasure_room) (not dead)))

@@ -1,0 +1,128 @@
+LORE: The Treasure Quest
+
+You are an adventurer traveling to an island in search of treasure in an abandoned temple. Your goal is to reach the Treasure Room at the center of the temple, hidden in a place known as "the room of wealth."
+
+Your journey begins in the initial room: the temple entrance. From there, you can choose to explore in any cardinal direction: north, south, east, or west, as long as you don't leave the temple.
+
+The adventurer has a maximum of three lives, which can increase or decrease depending on the room you enter. You also have items to overcome dangers during exploration.
+
+The temple is full of various types of rooms with traps that can be avoided, some by solving puzzles and others by using the right item; otherwise, you lose a life.
+
+There are also safe rooms that allow you to regain health or continue safely. Some rooms may contain numbered keys.
+
+To reach the Treasure Room, you must first pass through the antechamber, which contains a complex puzzle that must be solved on the first try, otherwise a trap will kill the adventurer.
+
+Each trap contains a puzzle. If you answer correctly or use the correct item, you will progress unharmed. If you fail, a life is lost, and if your life count drops to 0, you will have to restart the game. Some paths to the Treasure Room are blocked by locked doors, which can only be opened with the key with the same number as the door.
+
+All paths are called "roads" and all lead to "rooms." Some doors are locked and require the correct key to be found first.
+
+The connections between the rooms form a complex labyrinth. The Treasure Room can only be reached from the antechamber, which contains the complex puzzle.
+
+The adventurer has four items at his disposal: torch, shield, water-soaked cloth, and steel pole.
+
+The rooms can be:
+LV free with life
+LKN or free that gives the N key
+TON trap n solvable with an object
+TEN trap n solvable with a puzzle
+
+and the corridors can be free or have a number as an attribute that indicates the key needed to unlock it.
+
+The rooms on the map are:
+(1, entrance)
+(2, TO1)
+(3, LK4)
+(4, TE5)
+(5, TO2)
+(6, LV)
+(7, TE6)
+(8, LK3)
+(9, LV)
+(10, TO3)
+(11, LK1)
+(12, TE7)
+(13, TE8)
+(14, LK2)
+(15, TO4)
+(16, treasure antechamber)
+
+and they are connected as follows:
+(starting room, arrival room, corridor position, key needed (or none key))
+
+(1,2,N,0)
+(1,13,E,0)
+(1,12,S,0)
+(2,1,S,0)
+(2,3,E,0)
+(3,2,W,0)
+(3,4,E,0)
+(4,3,W,0)
+(4,14,S,0)
+(4,5,E,1)
+(5,4,W,1)
+(5,15,S,1)
+(5,6,E,0)
+(6.5,W,0)
+(6,7,S,0)
+(7,15,W,3)
+(7,8,S,0)
+(7,6,N,0)
+(8,9,W,0)
+(8,7,N,0)
+(9,10,W,4)
+(9, 8,E,0)
+(9,15,N,2)
+(10,11,W,0)
+(10,9,E,4)
+(10,14,N,0)
+(11,13,W,0)
+(11,10,E,0)
+(12,14,E,0)
+(12,1,N,0)
+(13,1,W,0)
+(13,11,S,0)
+(13,14,E,0)
+(14,13,W,0)
+(14,12,S,0)
+(14,10,E,0)
+(14,4,N,0)
+(15.5,N,1)
+(15,7,E,3)
+(15,9,S,2)
+(15,16,W,0)
+
+There The object trap rooms are:
+1. Bat room, solvable with the flashlight
+2. Gas room, solvable with the handkerchief soaked in water
+3. Arrow room, solvable with the shield
+4. Flooding room, solvable with the pole to move a lever
+
+The puzzle traps have writing on the walls and tiles to press. Pressing the correct one unlocks the room, otherwise you lose a life due to falling debris, and then the room unlocks:
+5.
+You find me in the present, but I cannot be touched.
+Silent step, no one sees me coming.
+I can heal or destroy. Who am I?
+Fire, Wind, Time, Shadow. Solution: Time
+6.
+Brothers run together,
+No one ever leaves their own path.
+Sometimes they are calm, sometimes at war,
+But always they chase each other endlessly.
+The seasons, The rivers, The winds, The days. Solution: Seasons
+7
+I have eyes but I cannot see,
+A mouth but I cannot speak,
+A human form but I am not.
+Who am I?
+Statue, Golem, Mummy, Skull. Solution: Statue
+8
+The more you remove, the bigger I become.
+I live where the light dares not enter.
+What am I?
+Night, Darkness, Shadow, Silence. Solution: Darkness
+
+Failure to solve the puzzles correctly results in the loss of a life.
+Trapped rooms are solved in two stages: first, you solve the puzzle by providing the correct answer to the puzzle or using the correct item for the item answer, and then you decide where to move.
+In normal rooms, you choose where to go directly.
+
+Your task: survive the traps, solve the puzzles, collect the keys, and enter the treasure room. Good luck!
