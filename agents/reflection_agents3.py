@@ -1,225 +1,115 @@
 #!/usr/bin/env python3
-"""reflection_agents3.py – genera dominio e problema PDDL da una lore usando Gemini
+"""
+reflection_agents3.py  ·  Genera domain.pddl e problem.pddl da un file di lore
+senza usare skeleton PDDL: tutta la struttura è descritta nel prompt.
 
-USO:
-    python reflection_agents3.py path/to/lore.txt
-
-Versione 2025‑08‑24 – Revision 3.
-Fixed: bilanciamento parentesi in DOMAIN_SKEL (mancava una parentesi di chiusura per (define)).
+Uso:
+    python3 reflection_agents3.py /percorso/alla/lore.txt
 """
 
 from __future__ import annotations
 from pathlib import Path
-import os, sys, textwrap
-from typing import Dict, List, Union
+from typing import Dict
+import os, sys
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-# ────────────────────────────────────────────────────────────────
-# 1. Inizializzazione LLM (chiave API da env var)
-# ────────────────────────────────────────────────────────────────
-API_KEY = os.getenv("GOOGLE_API_KEY", "")
-if not API_KEY:
-    sys.exit("Errore: imposta la variabile d'ambiente GOOGLE_API_KEY")
-
+# ───────────────────────────────────
+# 1.  Chiave API fissa (o da env-var)
+# ───────────────────────────────────
+# imposta l'API-key sia in variabile d'ambiente sia come parametro
+API_KEY = "AIzaSyC-JBjbsQtI66ybyMA-b6C0Zrey5bB9X5E"
+os.environ["GOOGLE_API_KEY"] = API_KEY          # <── AGGIUNGI
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash-latest",
     temperature=0.15,
     google_api_key=API_KEY,
 )
-
 OUTPUT_DIR = Path("./pddl_output")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-# ────────────────────────────────────────────────────────────────
-# 2. Skeleton PDDL (STRIPS + typing + negative-preconditions)
-# ────────────────────────────────────────────────────────────────
-DOMAIN_SKEL = """
-(define (domain treasure_quest)
-  (:requirements :strips :typing :negative-preconditions)
-  (:types room key item puzzle direction)
-  (:predicates
-    (at ?r - room) (connected ?a - room ?b - room ?d - direction)
-    (locked ?r - room) (key_opens ?k - key ?r - room)
+# ───────────────────────────────────
+# 2. Funzione principale
+# ───────────────────────────────────
+def generate_pddl_from_lore(file_path: str) -> Dict[str, str]:
+    """Legge la lore e genera i file PDDL in OUTPUT_DIR."""
+    lore = Path(file_path).expanduser().read_text(encoding="utf-8")
+
+    prompt = f"""
+You are an expert in classical AI Planning (STRIPS) and PDDL writing.
+
+TASK → read the Treasure-Quest lore below and output two PDDL blocks,
+in this exact order:
+
+(define (domain treasure_quest) …)
+(define (problem treasure_quest_problem) …)
+
+Return plain text, no markdown.
+
+DOMAIN constraints
+- (:requirements :strips :typing :negative-preconditions)
+- Types: room key item puzzle direction
+- Predicates (exactly these):
+    (at ?r - room)
+    (connected ?a - room ?b - room ?d - direction)
+    (locked ?r - room)
+    (key_opens ?k - key ?r - room)
     (has_key ?k - key) (has_item ?i - item)
     (key_in_room ?k - key ?r - room)
     (trap_item_room ?r - room ?i - item) (trap_active ?r - room)
     (puzzle_in_room ?p - puzzle ?r - room) (answer_known ?p - puzzle)
-    (life1) (life2) (life3) (dead) )
+    (life1) (life2) (life3) (dead)
+- Actions to include (names fixed):
+    move, unlock, use_item_trap, solve_puzzle,
+    pickup_key, pickup_item,
+    lose_life3, lose_life2, lose_life1
+  * move needs (not (locked ?to)) & (not (dead))
+  * unlock clears (locked ?to) if agent has right key
+  * each lose_lifeX removes one life predicate; lose_life1 also sets (dead)
 
-  ;; —————————————————— actions ——————————————————
-  (:action move
-    :parameters (?f - room ?t - room ?d - direction)
-    :precondition (and (at ?f) (connected ?f ?t ?d) (not (locked ?t)) (not dead))
-    :effect       (and (not (at ?f)) (at ?t)) )
+PROBLEM requirements
+- List ALL rooms, keys, items, puzzles, directions in (:objects)
+- (:init) must include:
+    (at entrance)  (life1)(life2)(life3)
+    starting items owned
+    key locations, key_opens + locked doors
+    EVERY connected fact (bidirectional)
+    traps & puzzle facts with trap_active
+    (answer_known ?p) true for every puzzle
+- Goal: (and (at treasure_room) (not (dead)))
 
-  (:action unlock
-    :parameters (?f - room ?t - room ?k - key ?d - direction)
-    :precondition (and (at ?f) (connected ?f ?t ?d) (locked ?t)
-                       (has_key ?k) (key_opens ?k ?t) (not dead))
-    :effect       (and (not (locked ?t))) )
+STYLE
+- Use lowercase_with_underscores for every symbol.
+- Add a short natural-language comment to each line.
+- NO markdown fences.
 
-  (:action use_item_trap
-    :parameters (?i - item ?r - room)
-    :precondition (and (at ?r) (trap_item_room ?r ?i) (has_item ?i)
-                       (trap_active ?r) (not dead))
-    :effect       (and (not (trap_active ?r))) )
-
-  (:action solve_puzzle
-    :parameters (?p - puzzle ?r - room)
-    :precondition (and (at ?r) (puzzle_in_room ?p ?r) (answer_known ?p)
-                       (not dead))
-    :effect       (and (answer_known ?p)))
-
-  (:action pickup_key
-    :parameters (?k - key ?r - room)
-    :precondition (and (at ?r) (key_in_room ?k ?r) (not dead))
-    :effect       (and (has_key ?k) (not (key_in_room ?k ?r))))
-
-  (:action pickup_item
-    :parameters (?i - item ?r - room)
-    :precondition (and (at ?r) (trap_item_room ?r ?i) (not dead))
-    :effect       (and (has_item ?i)))
-
-  (:action lose_life3
-    :parameters ()
-    :precondition (life3)
-    :effect (not (life3)))
-
-  (:action lose_life2
-    :parameters ()
-    :precondition (and (not (life3)) (life2))
-    :effect (not (life2)))
-
-  (:action lose_life1
-    :parameters ()
-    :precondition (and (not (life3)) (not (life2)) (life1))
-    :effect (and (not (life1)) (dead)))
-
-  ;; goal placeholder — verrà sovrascritto
-  (:goal (and (at treasure_room) (not dead)))
-)
+LORE:
+{lore}
 """
 
-PROBLEM_SKEL = """
-(define (problem treasure_quest_problem)
-  (:domain treasure_quest)
-  (:objects n s e w - direction)               ;; TODO altri oggetti
-  (:init (at entrance) (life1) (life2) (life3) ;; TODO fatti iniziali
-  )
-  (:goal (and (at treasure_room) (not dead)))
-)
-"""
+    print("⚙️  Invio a Gemini…")
+    text = llm.invoke(prompt).content
 
-# ────────────────────────────────────────────────────────────────
-# 3. Prompt builder
-# ────────────────────────────────────────────────────────────────
+    if "(define (problem" not in text:
+        raise ValueError("⚠️  Il modello non ha restituito il blocco problem.")
 
-def build_prompt(lore: str) -> str:
-    """Costruisce il prompt di sistema: skeleton + lore."""
-    return textwrap.dedent(f"""
-    Compila SOLO le sezioni contrassegnate con TODO.
-    Mantieni i marker ### DOMAIN/PROBLEM START/END esattamente come sono.
-    Non introdurre tipi stringa extra né markdown.
+    domain_part, problem_tail = text.split("(define (problem", 1)
+    domain  = domain_part.strip()
+    problem = "(define (problem " + problem_tail.strip()
 
-    ### DOMAIN START
-    {DOMAIN_SKEL}
-    ### DOMAIN END
+    (OUTPUT_DIR / "domain.pddl").write_text(domain,   encoding="utf-8")
+    (OUTPUT_DIR / "problem.pddl").write_text(problem, encoding="utf-8")
+    print("✅  PDDL salvati in", OUTPUT_DIR.resolve())
 
-    ### PROBLEM START
-    {PROBLEM_SKEL}
-    ### PROBLEM END
-
-    Lore di riferimento:
-    ---
-    {lore}
-    ---
-    """)
-
-# ────────────────────────────────────────────────────────────────
-# 4. Funzioni di supporto
-# ────────────────────────────────────────────────────────────────
-
-def auto_wrap(raw: str) -> str:
-    """Assicura che il testo sia dentro ### DOMAIN/PROBLEM START/END."""
-    if "### DOMAIN START" not in raw:
-        raw = "### DOMAIN START\n" + raw
-    if "### DOMAIN END" not in raw:
-        raw += "\n### DOMAIN END"
-    if "### PROBLEM START" not in raw:
-        raw += "\n### PROBLEM START\n"
-    if "### PROBLEM END" not in raw:
-        raw += "\n### PROBLEM END"
-    return raw
-
-
-def extract(txt: str, a: str, b: str) -> str:
-    try:
-        return txt.split(a)[1].split(b)[0].strip()
-    except IndexError:
-        raise ValueError(f"Marker {a} o {b} assente")
-
-
-def fix_problem_objects(problem_text: str) -> str:
-    """Placeholder: aggiunge automaticamente oggetti mancanti se necessario."""
-    # Implementazione minimale: nessuna modifica
-    return problem_text
-
-# ────────────────────────────────────────────────────────────────
-# 5. Chiamata a Gemini (con retry sui marker)
-# ────────────────────────────────────────────────────────────────
-
-def ask_with_markers(prompt: Union[str, List[dict]], tries: int = 3) -> str:
-    """Invoca Gemini ripetendo fino a quando non ottiene tutti i marker."""
-    last_raw = ""
-    for i in range(tries):
-        if i > 0:
-            reminder = "\n⚠️  INCLUDE EXACTLY: ### DOMAIN START/END e ### PROBLEM START/END. Nessun markdown."
-            if isinstance(prompt, str):
-                prompt += reminder
-            else:
-                prompt[-1]["content"] += reminder
-        last_raw = llm.invoke(prompt).content  # type: ignore
-        wrapped = auto_wrap(last_raw)
-        if all(m in wrapped for m in ("### DOMAIN START", "### DOMAIN END", "### PROBLEM START", "### PROBLEM END")):
-            return wrapped
-    Path("gemini_last_raw.txt").write_text(last_raw, encoding="utf-8")
-    raise ValueError("Marker ancora assenti – vedi gemini_last_raw.txt")
-
-# ────────────────────────────────────────────────────────────────
-# 6. Orchestrazione
-# ────────────────────────────────────────────────────────────────
-
-def generate_pddl_from_lore(lore_path: str) -> Dict[str, str]:
-    lore_text = Path(lore_path).read_text(encoding="utf-8")
-    prompt_sys = build_prompt(lore_text)
-    messages = [
-        {"role": "system", "content": prompt_sys},
-        {"role": "user", "content": "Genera dominio e problema"},
-    ]
-
-    print("⚙️  Interrogo Gemini…")
-    raw = ask_with_markers(messages)
-
-    domain = extract(raw, "### DOMAIN START", "### DOMAIN END")
-    problem = extract(raw, "### PROBLEM START", "### PROBLEM END")
-
-    problem = fix_problem_objects(problem)
-
-    OUTPUT_DIR.joinpath("domain.pddl").write_text(domain, encoding="utf-8")
-    OUTPUT_DIR.joinpath("problem.pddl").write_text(problem, encoding="utf-8")
-    print("PDDL salvati in", OUTPUT_DIR.resolve())
     return {"domain": domain, "problem": problem}
 
-# ────────────────────────────────────────────────────────────────
-# 7. CLI
-# ────────────────────────────────────────────────────────────────
-
+# ───────────────────────────────────
+# 3. CLI
+# ───────────────────────────────────
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        sys.exit("Uso: python reflection_agents3.py path/to/lore.txt")
+        sys.exit("Uso: python3 reflection_agents3.py path/to/lore.txt")
 
-    result = generate_pddl_from_lore(sys.argv[1])
-
-    print("\n── DOMAIN preview ──\n", result["domain"][:600])
-    print("\n── PROBLEM preview ─\n", result["problem"][:600])
+    res = generate_pddl_from_lore(sys.argv[1])
+    print("\n── DOMAIN preview ──\n", res["domain"][:600])
+    print("\n── PROBLEM preview ─\n", res["problem"][:600])
