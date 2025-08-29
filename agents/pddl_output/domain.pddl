@@ -49,14 +49,17 @@
     :effect (and (has_item ?i)) ; agent picks up item ?i
   )
   (:action lose_life3
-    :precondition (life3) ; agent has life3
-    :effect (and (not (life3))) ; agent loses life3
+  :parameters ()                               ; nessun parametro
+  :precondition (and (life3))                  ; richiede di avere life3
+  :effect       (and (not (life3)))            ; toglie life3
   )
   (:action lose_life2
+    :parameters ()                              
     :precondition (and (not (life3)) (life2)) ; agent doesn't have life3, but has life2
     :effect (and (not (life2))) ; agent loses life2
   )
   (:action lose_life1
+    :parameters () 
     :precondition (and (not (life3)) (not (life2)) (life1)) ; agent doesn't have life3 or life2, but has life1
     :effect (and (not (life1)) (dead)) ; agent loses life1 and dies
   )

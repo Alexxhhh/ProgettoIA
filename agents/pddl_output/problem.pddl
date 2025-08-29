@@ -1,7 +1,7 @@
 (define (problem treasure_quest_problem)
   (:domain treasure_quest)
   (:objects
-    entrance to_torcia2 te_tempo4 to_gas5 lv6 te_stagioni7 lk38 lv9 to_scudo10 lk111 te_statua12 te_oscurita13 lk214 to_asta_di_ferro15 treasure_antechamber16 treasure_room - room
+    entrance to_torcia2 lk43 te_tempo4 to_gas5 lv6 te_stagioni7 lk38 lv9 to_scudo10 lk111 te_statua12 te_oscurita13 lk214 to_asta_di_ferro15 treasure_antechamber16 treasure_room - room
     k1 k2 k3 k4 - key
     torcia panno_bagnato scudo asta_di_ferro - item
     p2 p4 p5 p7 p10 p12 p13 p15 p16 - puzzle
