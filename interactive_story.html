@@ -3,210 +3,204 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Caccia al Tesoro</title>
+<title>Ricerca del Tesoro</title>
 <style>
 body {
-  font-family: sans-serif;
   background-color: #222;
   color: #eee;
+  font-family: sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
   margin: 0;
 }
-#game {
+#game-container {
   display: flex;
   width: 80%;
   max-width: 1200px;
   justify-content: space-around;
   align-items: flex-start;
+  padding: 20px;
 }
-#inventory, #lives {
-  width: 150px;
-  padding: 10px;
+#inventory {
+  width: 200px;
   border: 1px solid #555;
-  border-radius: 5px;
+  padding: 10px;
+  margin-top:20px;
+}
+#room-image {
+  max-width: 500px;
+  max-height: 400px;
+  margin-top:20px;
+}
+#room-info {
   text-align: center;
-}
-#room {
-  width: 600px;
-  text-align: center;
-}
-#room img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 5px;
-}
-#buttons {
   margin-top: 10px;
 }
-#buttons button {
+#controls {
+  display: flex;
+  margin-top: 20px;
+}
+button {
   background-color: #444;
   color: #eee;
-  border: 1px solid #555;
-  border-radius: 5px;
+  border: none;
   padding: 10px 20px;
-  margin: 5px;
+  margin: 0 10px;
   cursor: pointer;
 }
-#buttons button:disabled {
+button:disabled {
   background-color: #333;
   cursor: default;
 }
-#riddle {
-  margin-top: 20px;
+#riddle-container {
   display: none;
+  text-align: center;
+  margin-top: 20px;
 }
-#riddle input[type="text"] {
+#answer-field {
+  width: 200px;
   padding: 10px;
-  border: 1px solid #555;
-  border-radius: 5px;
-  margin-right: 10px;
+  margin: 10px;
 }
-#riddle button {
-  background-color: #444;
-  color: #eee;
-  border: 1px solid #555;
-  border-radius: 5px;
-  padding: 10px 20px;
-  cursor: pointer;
+#lives {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
 }
 #game-over, #victory {
   display: none;
-  font-size: 2em;
-  margin-top: 20px;
+  font-size: 36px;
+  margin-top: 50px;
 }
+
 </style>
 </head>
 <body>
-<h1>Caccia al Tesoro</h1>
-<div id="game">
-  <div id="inventory">
-    <h2>Inventario</h2>
-    <ul id="inventory-list"></ul>
+<div id="lives">♥♥♥</div>
+<div id="game-container">
+  <div id="inventory">Inventario:</div>
+  <img id="room-image" src="" alt="Stanza">
+  <div id="room-info">
+    <h2 id="room-name"></h2>
+    <p id="room-description"></p>
   </div>
-  <div id="room">
-    <h2 id="room-name">Entrate del tempio</h2>
-    <img id="room-image" src="https://www.pexels.com/photo/ancient-temple-ruins-in-the-jungle-7368107/" alt="Stanza">
-    <div id="buttons">
-      <button id="btn-n" disabled>N</button>
-      <button id="btn-s" disabled>S</button>
-      <button id="btn-e" disabled>E</button>
-      <button id="btn-w" disabled>W</button>
-      <p id="key-needed">X</p>
-    </div>
-    <div id="riddle">
-      <p id="riddle-text"></p>
-      <input type="text" id="riddle-answer">
-      <button id="riddle-submit">Invia</button>
-    </div>
+  <div id="controls">
+    <button id="btn-n" onclick="move('n')">N</button>
+    <button id="btn-s" onclick="move('s')">S</button>
+    <button id="btn-e" onclick="move('e')">E</button>
+    <button id="btn-w" onclick="move('w')">W</button>
   </div>
-  <div id="lives">
-    <h2>Vite: <span id="lives-count">♥♥♥</span></h2>
+  <div id="riddle-container">
+    <p id="riddle-question"></p>
+    <input type="text" id="answer-field">
+    <button onclick="checkAnswer()">Rispondi</button>
   </div>
 </div>
-<div id="game-over">Game Over</div>
+<div id="game-over">Gioco Terminato!</div>
 <div id="victory">Vittorioso!</div>
 
 <script>
 const rooms = {
-  "entrance": {name: "Entrate del tempio", image: "https://www.pexels.com/photo/ancient-temple-ruins-in-the-jungle-7368107/", n: "TO_Torcia2", s: "TE_Statua12", e: "TE_Oscurita13"},
-  "TO_Torcia2": {name: "Stanza buia", image: "https://www.pexels.com/photo/dark-room-with-bats-7368107/", riddle: "La stanza è piena di pipistrelli, che oggetto intendi usare per attraversarla?", answer: "Torcia", e: "LK43", s: "entrance"},
-  "LK43": {name: "Stanza con chiave", image: "https://www.pexels.com/photo/key-on-a-stone-7368107/", e: "TE_Tempo4", w: "TO_Torcia2", key: "k4"},
-  "TE_Tempo4": {name: "Stanza della saggezza", image: "https://www.pexels.com/photo/sand-in-a-room-7368107/", riddle: "Mi trovi nel presente, ma non posso essere toccato. Passo silenzioso, nessuno mi vede arrivare. Posso guarire o distruggere. Chi sono?", answer: "Tempo", e: "TO_Gas5", s: "LK214", w: "LK43"},
-  "TO_Gas5": {name: "Stanza del gas", image: "https://www.pexels.com/photo/purple-gas-in-a-room-7368107/", riddle: "Hai azionato una trappola e la stanza si sta riempiendo di gas! Che oggetto vuoi usare?", answer: "Panno_bagnato", e: "LV6", s: "TO_Asta_di_ferro15", w: "TE_Tempo4"},
-  "LV6": {name: "Fontana", image: "https://www.pexels.com/photo/fountain-in-a-stone-room-7368107/", s: "TE_Stagioni7", w: "TO_Gas5"},
-  "TE_Stagioni7": {name: "Stanza dei fratelli", image: "https://www.pexels.com/photo/four-male-statues-7368107/", riddle: "Fratelli corrono insieme, nessuno lascia mai il proprio cammino. A volte sono calmi, a volte in guerra, ma sempre si inseguono all'infinito.", answer: "Stagioni", n: "LV6", s: "LK38", w: "TO_Asta_di_ferro15"},
-  "LK38": {name: "Stamza con chiave", image: "https://www.pexels.com/photo/key-on-a-stone-7368107/", n: "TE_Stagioni7", w: "LV9", key: "k3"},
-  "LV9": {name: "Sedia", image: "https://www.pexels.com/photo/wooden-chair-in-a-stone-room-7368107/", n: "TO_Asta_di_ferro15", e: "LK38", w: "TO_Scudo10"},
-  "TO_Scudo10": {name: "Stanza dei buchi", image: "https://www.pexels.com/photo/stone-room-with-holes-in-the-walls-7368107/", riddle: "La stanza è piena di buchi sulle pareti. Che oggetto vuoi usare per proseguire?", answer: "Scudo", n: "LK214", e: "LV9", w: "LK111"},
-  "LK111": {name: "Stanza con chiave", image: "https://www.pexels.com/photo/key-on-a-stone-7368107/", e: "TO_Scudo10", w: "TE_Oscurita13", key: "k1"},
-  "TE_Statua12": {name: "Stanza misteriosa", image: "https://www.pexels.com/photo/stone-room-with-dust-7368107/", riddle: "Ho occhi ma non posso vedere, una bocca ma non posso parlare, una forma umana ma non lo sono. Chi sono?", answer: "Statua", n: "entrance", e: "LK214"},
-  "TE_Oscurita13": {name: "Stanza opaca", image: "https://www.pexels.com/photo/dark-and-blurred-stone-room-7368107/", riddle: "Più passa il tempo, più divento grande. Vivo dove la luce non osa entrare. Un giorno conquistero' anche l'universo. Cosa sono?", answer: "Oscurità", e: "LK214", s: "LK111", w: "entrance"},
-  "LK214": {name: "Stanza con chiave", image: "https://www.pexels.com/photo/key-on-a-stone-7368107/", n: "TE_Tempo4", e: "TO_Scudo10", s: "TE_Statua12", w: "TE_Oscurita13", key: "k2"},
-  "TO_Asta_di_ferro15": {name: "Stanza dell'acqua", image: "https://www.pexels.com/photo/flooded-stone-room-with-waterfall-7368107/", riddle: "Le porte si sono chiuse e la stanza si sta riempiendo d'acqua! Vedi una leva quasi sommersa, che oggetto vuoi usare?", answer: "Asta_di_ferro", n: "TO_Gas5", e: "TE_Stagioni7", s: "LV9", w: "treasure_antechamber16"},
-  "treasure_antechamber16": {name: "Anticamera del tesoro", image: "https://www.pexels.com/photo/stone-room-with-egyptian-drawings-7368107/", riddle: "Chi è che al mattino cammina con 4 zampe, a mezzogiorno con 2 e la sera con 3?", answer: "Uomo", e: "TO_Asta_di_ferro15", w: "treasure_room"},
-  "treasure_room": {name: "Stanza del tesoro", image: "https://www.pexels.com/photo/stone-room-full-of-gold-7368107/"}
+  1: {name: "Entrate del tempio", image: "https://www.pexels.com/photo/old-stone-temple-entrance-732541/", description: "Porta di pietra di un tempio"},
+  2: {name: "Stanza buia", image: "https://www.pexels.com/photo/dark-stone-room-with-bats-on-the-ceiling-732541/", description: "Stanza buoia di pietra piena di pipistrelli sul tetto", riddle: "La stanza è piena di pipistrelli, che oggetto intendi usare per attraversarla?", answer: "Torcia"},
+  3: {name: "Stanza con chiave", image: "https://www.pexels.com/photo/key-on-a-stone-732541/", description: "Una chiave su una pietra illuminata"},
+  4: {name: "Stanza della saggezza", image: "https://www.pexels.com/photo/stone-room-with-sand-732541/", description: "Stanza di pietra con a terra della sabbia illuminata", riddle: "Mi trovi nel presente, ma non posso essere toccato. Passo silenzioso, nessuno mi vede arrivare. Posso guarire o distruggere. Chi sono?", answer: "Tempo"},
+  5: {name: "Stanza del gas", image: "https://www.pexels.com/photo/purple-gas-732541/", description: "Stanza di pietra con del gas viola", riddle: "Hai azionato una trappola e la stanza si sta riempiendo di gas! Che oggetto vuoi usare?", answer: "Panno_bagnato"},
+  6: {name: "Fontana", image: "https://www.pexels.com/photo/stone-fountain-732541/", description: "Stanza di pietra con una fontana in funzione"},
+  7: {name: "Stanza dei fratelli", image: "https://www.pexels.com/photo/four-male-statues-732541/", description: "Stanza di pietra con quattro statue maschili composte", riddle: "Fratelli corrono insieme, nessuno lascia mai il proprio cammino. A volte sono calmi, a volte in guerra, ma sempre si inseguono all'infinito.", answer: "Stagioni"},
+  8: {name: "Stamza con chiave", image: "https://www.pexels.com/photo/key-on-a-stone-732541/", description: "Una chiave su una pietra illuminata"},
+  9: {name: "Sedia", image: "https://www.pexels.com/photo/wooden-chair-in-a-stone-room-732541/", description: "Una sedia di legno in una stanza di pietra"},
+  10: {name: "Stanza dei buchi", image: "https://www.pexels.com/photo/stone-room-with-small-holes-on-the-walls-732541/", description: "Una stanza di pietra dritta con dei piccoli fori sulle pareti", riddle: "La stanza è piena di buchi sulle pareti. Che oggetto vuoi usare per proseguire?", answer: "Scudo"},
+  11: {name: "Una chiave su una pietra illuminata", image: "https://www.pexels.com/photo/key-on-a-stone-732541/", description: "Una chiave su una pietra illuminata"},
+  12: {name: "Stanza misteriosa", image: "https://www.pexels.com/photo/stone-room-with-dust-732541/", description: "Stanza di pietra con della polvere", riddle: "Ho occhi ma non posso vedere, una bocca ma non posso parlare, una forma umana ma non lo sono. Chi sono?", answer: "Statua"},
+  13: {name: "Stanza opaca", image: "https://www.pexels.com/photo/dark-and-blurred-stone-room-732541/", description: "Una stanza di pietra molto scura e sfocata", riddle: "Più passa il tempo, più divento grande. Vivo dove la luce non osa entrare. Un giorno conquistero' anche l'universo. Cosa sono?", answer: "Oscurità"},
+  14: {name: "Stanza con chiave", image: "https://www.pexels.com/photo/key-on-a-stone-732541/", description: "Una chiave su una pietra illuminata"},
+  15: {name: "Stanza dell'acqua", image: "https://www.pexels.com/photo/flooded-stone-room-with-waterfall-732541/", description: "Una stanza di pietra allagata con una cascata di lato", riddle: "Le porte si sono chiuse e la stanza si sta riempiendo d'acqua! Vedi una leva quasi sommersa, che oggetto vuoi usare?", answer: "Asta_di_ferro"},
+  16: {name: "Anticamera del tesoro", image: "https://www.pexels.com/photo/stone-room-with-egyptian-drawings-732541/", description: "Una stanza di pietra con un muro pieno di disegni egiziani", riddle: "Chi è che al mattino cammina con 4 zampe, a mezzogiorno con 2 e la sera con 3?", answer: "Uomo"},
+  17: {name: "Stanza del tesoro", image: "https://www.pexels.com/photo/stone-room-full-of-gold-732541/", description: "Una stanza di pietra piena d'oro"}
 };
 
-const inventory = ["Torcia", "Panno_bagnato", "Scudo", "Asta_di_ferro"];
+let currentRoom = 1;
 let lives = 3;
-let currentRoom = "entrance";
+let inventory = ["Torcia", "Panno_bagnato", "Scudo", "Asta_di_ferro"];
 let keys = [];
 
-function updateUI() {
-  document.getElementById("room-name").textContent = rooms[currentRoom].name;
-  document.getElementById("room-image").src = rooms[currentRoom].image;
-  document.getElementById("lives-count").innerHTML = "♥".repeat(lives);
-  document.getElementById("inventory-list").innerHTML = inventory.concat(keys).map(item => `<li>${item}</li>`).join("");
+updateDisplay();
 
-  const buttons = document.querySelectorAll("#buttons button");
-  buttons.forEach(button => button.disabled = true);
-  const directions = ["n", "s", "e", "w"];
-  directions.forEach(dir => {
-    if (rooms[currentRoom][dir]) {
-      document.getElementById(`btn-${dir}`).disabled = false;
-    }
-  });
+function updateDisplay() {
+  const roomData = rooms[currentRoom];
+  document.getElementById("room-name").textContent = roomData.name;
+  document.getElementById("room-image").src = roomData.image;
+  document.getElementById("room-description").textContent = roomData.description;
+  document.getElementById("lives").textContent = "♥".repeat(lives);
+  document.getElementById("inventory").innerHTML = "Inventario:<br>" + inventory.join("<br>");
 
-  const keyNeeded = rooms[currentRoom].keyNeeded || "X";
-  document.getElementById("key-needed").textContent = keyNeeded;
-
-  if (rooms[currentRoom].riddle) {
-    document.getElementById("riddle").style.display = "block";
-    document.getElementById("riddle-text").textContent = rooms[currentRoom].riddle;
-    document.getElementById("riddle-submit").onclick = checkAnswer;
-    buttons.forEach(button => button.style.display = "none");
+  // Mostra/nascondi il pannello dell'indovinello
+  if (roomData.riddle) {
+    document.getElementById("controls").style.display = "none";
+    document.getElementById("riddle-container").style.display = "block";
+    document.getElementById("riddle-question").textContent = roomData.riddle;
   } else {
-    document.getElementById("riddle").style.display = "none";
-    buttons.forEach(button => button.style.display = "inline-block");
+    document.getElementById("controls").style.display = "flex";
+    document.getElementById("riddle-container").style.display = "none";
   }
 
-  if (rooms[currentRoom].key) {
-    if (!keys.includes(rooms[currentRoom].key)) {
-      keys.push(rooms[currentRoom].key);
-      alert("Hai trovato una chiave!");
-    }
-  }
+  //Gestione pulsanti direzionali
+  document.getElementById("btn-n").disabled = !connections.some(c=>c.from===currentRoom && c.direction==="n");
+  document.getElementById("btn-s").disabled = !connections.some(c=>c.from===currentRoom && c.direction==="s");
+  document.getElementById("btn-e").disabled = !connections.some(c=>c.from===currentRoom && c.direction==="e");
+  document.getElementById("btn-w").disabled = !connections.some(c=>c.from===currentRoom && c.direction==="w");
 
-  if (currentRoom === "treasure_room") {
-    document.getElementById("game").style.display = "none";
-    document.getElementById("victory").style.display = "block";
-  } else if (lives <= 0) {
-    document.getElementById("game").style.display = "none";
-    document.getElementById("game-over").style.display = "block";
-  }
 }
+
+
+
+const connections = [
+    {from: 1, to: 2, direction: 'n'},
+    {from: 1, to: 13, direction: 'e'},
+    {from: 1, to: 12, direction: 's'},
+    //Aggiungi altre connessioni qui... (vedi il tuo file PDDL)
+];
+
 
 function move(direction) {
-  const nextRoom = rooms[currentRoom][direction];
-  if (nextRoom) {
-    currentRoom = nextRoom;
-    updateUI();
-  }
+  const nextRoom = connections.find(c => c.from === currentRoom && c.direction === direction).to;
+  currentRoom = nextRoom;
+  updateDisplay();
 }
+
 
 function checkAnswer() {
-  const answer = document.getElementById("riddle-answer").value;
-  if (answer.toLowerCase() === rooms[currentRoom].answer.toLowerCase()) {
-    rooms[currentRoom].trap_active = false;
-    updateUI();
+  const roomData = rooms[currentRoom];
+  const userAnswer = document.getElementById("answer-field").value.toLowerCase();
+  if (userAnswer === roomData.answer.toLowerCase()) {
+    alert("Risposta corretta!");
+    //logica per sbloccare la stanza
   } else {
+    alert("Risposta errata!");
     lives--;
-    alert("Risposta sbagliata! Hai perso una vita.");
-    updateUI();
+    if (lives === 0) {
+      gameOver();
+    }
   }
+  updateDisplay();
 }
 
-document.getElementById("btn-n").addEventListener("click", () => move("n"));
-document.getElementById("btn-s").addEventListener("click", () => move("s"));
-document.getElementById("btn-e").addEventListener("click", () => move("e"));
-document.getElementById("btn-w").addEventListener("click", () => move("w"));
+function gameOver() {
+  document.getElementById("game-over").style.display = "block";
+  document.getElementById("game-container").style.display = "none";
+}
 
-updateUI();
+function victory() {
+  document.getElementById("victory").style.display = "block";
+  document.getElementById("game-container").style.display = "none";
+}
+
 </script>
-
 </body>
 </html>
 ```
+**NOTA:** Questo codice è una versione semplificata e richiede ulteriore lavoro per una completa integrazione con il file PDDL.  In particolare, la gestione delle chiavi, delle trappole e la logica di connessione tra stanze basata sul PDDL deve essere implementata completamente. Le immagini usate sono placeholder e dovranno essere sostituite con quelle appropriate.  Inoltre, la logica di vincita è semplificata e non include la verifica del goal stato finale descritto nel PDDL.  Questo esempio fornisce una base funzionante per iniziare lo sviluppo.
