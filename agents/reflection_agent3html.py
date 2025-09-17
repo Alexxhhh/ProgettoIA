@@ -1,11 +1,11 @@
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-API_KEY = "AIzaSyCScsXJs6YOg9XWVUUfWuKraRf828AQCu0"
+API_KEY = "AIzaSyAwX8CohVzXyslpR5Wn1l37ZGSRTExfAiY"
 os.environ["GOOGLE_API_KEY"] = API_KEY          # <── AGGIUNGI
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-flash-latest",
-    temperature=1.00,
+    model="gemini-2.5-pro",
+    temperature=0.00,
     google_api_key=API_KEY,
 )
 
@@ -41,7 +41,7 @@ LORE (from PDDL + lore_2_s.txt)
   4 Tempo    (answer = Tempo)  
   5 Panno_bagnato (object = Panno_bagnato)  
   7 Stagioni  (answer = Stagioni)  
- 10 Scudo    (object = Scudo)  
+10 Scudo    (object = Scudo)  
  12 Statua   (answer = Statua)  
  13 Oscurità   (answer = Oscurità)  
  15 Asta_di_ferro (object = Asta_di_ferro)  
@@ -71,6 +71,11 @@ LAYOUT
 - Movement buttons (N S E W) below description when available.  
 - Puzzle/trap interface replaces movement buttons while active.  
 - Message area for key pickups and other events.
+- Victory page (upon reaching treasure_room alive): “Congratulazioni! Hai trovato il tesoro!”
+- Game Over page (upon losing all lives): “Game Over! Sei rimasto senza vite.
+- Restart button on Victory and Game Over pages to reload the game. 
+-the dimesion of the image is 600x400 px
+
 
 VISUAL / INTERACTION REQUIREMENTS
 ──────────────────────────────────
