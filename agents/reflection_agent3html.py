@@ -13,7 +13,7 @@ llm = ChatGoogleGenerativeAI(
 lore_path = "../ProgettoIA/lore/lore_2_s.txt"
 domain_path = "../ProgettoIA/agents/pddl_output/domain.pddl"
 problem_path = "../ProgettoIA/agents/pddl_output/problem.pddl"
-
+images_path = "../ProgettoIA/jpeg/"
 # Carico i contenuti
 with open(lore_path, "r", encoding="utf-8") as f:
     lore = f.read()
@@ -66,7 +66,7 @@ LAYOUT
 ──────
 - Room name at top; lives (♥ icons) top-right (update instantly).  
 - Inventory panel on the left (items + keys).  
-- **Each room shows an image sourced from Pixabay that fits its theme and description.**  
+- **Each room shows an image that you must take from the directory jpg whose path is contain in variable images_path remeber the name of the file remeber the name of the file contained in the directory jpg corresponds to the number of the room.**  
 - Room image centered; description immediately below.  
 - Movement buttons (N S E W) below description when available.  
 - Puzzle/trap interface replaces movement buttons while active.  
