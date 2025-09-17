@@ -17,6 +17,42 @@ Provide a short description of the room type or purpose.
 Describe the door panel design, referencing the image you've assigned (e.g., "The panel displays a stylized book for the library").
 Mention the image filename used for the door.
 
+5. Game Rules:
+
+	a. Starting state
+
+		  - Player begins in the `entrance` room.
+		  - Player has 3 lives (♥♥♥).
+		  - Inventory contains all trap-avoiding items, but no keys.
+
+	b. Movement
+
+   		- Each connected room = one movement button.
+    	- If a connection is locked → button is disabled unless the correct key is in inventory.
+   		- Using a key consumes (removes) it from inventory.
+
+	c. Traps
+
+	  	- Entering a trapped room requires choosing an item from inventory.
+    	- Correct item → trap cleared, continue.
+    	-	Wrong item → lose 1 life.
+
+	d. Puzzles
+
+    	- Entering a puzzle room requires answering a question.
+    	- Correct answer → puzzle cleared, continue.
+    	- Wrong answer → lose 1 life.
+
+	e. Lives
+
+    	- Player starts with 3 lives.
+    	- Each wrong trap/puzzle attempt reduces lives by 1.
+   		- If lives = 0 → trigger `Game Over` screen and disable input.
+
+	f. Victory condition
+
+    	- Entering the `goal` room → trigger Victory screen and disable input.
+
 Example format for each room:
 Room 01 – Library  
 Door Panel: Wooden panel with a centered frame displaying an image of a stacked book set.  
