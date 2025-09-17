@@ -66,7 +66,7 @@ LAYOUT
 ──────
 - Room name at top; lives (♥ icons) top-right (update instantly).  
 - Inventory panel on the left (items + keys).  
-- **Each room shows an image that you must take from the directory jpg whose path is contain in variable images_path remeber the name of the file remeber the name of the file contained in the directory jpg corresponds to the number of the room.**  
+- Each room shows an image that you must take from the directory jpg whose path is contain in variable images_path remeber the name of the file remeber the name of the file contained in the directory jpg corresponds to the number of the room. Fit the image to the page.
 - Room image centered; description immediately below.  
 - Movement buttons (N S E W) below description when available.  
 - Puzzle/trap interface replaces movement buttons while active.  
