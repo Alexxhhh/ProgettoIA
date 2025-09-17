@@ -10,7 +10,7 @@ llm = ChatGoogleGenerativeAI(
 )
 
 # Percorsi ai file di input
-lore_path = "/Users/andreadomenicogimbri/Desktop/ProgettoIA/lore/lore_2_s.txt"
+lore_path = "/Users/andreadomenicogimbri/Desktop/ProgettoIA/lore/lore_3_s.txt"
 domain_path = "/Users/andreadomenicogimbri/Desktop/ProgettoIA/agents/pddl_output/domain.pddl"
 problem_path = "/Users/andreadomenicogimbri/Desktop/ProgettoIA/agents/pddl_output/problem.pddl"
 
@@ -33,20 +33,23 @@ Layout:
 -Do not create a third column: the inventory belongs inside the left panel.
 -All elements (buttons, media, overlays) appear only when needed (display:none/block) and must never cause horizontal scrolling at 1280 × 720 px.
 Game logic requirements:
--the player starts in the entrance room with three lives (♥♥♥) and the inventory containing all the objects needed to surpass traps (except keys).
+-the player starts in the entrance room with three lives (♥♥♥) 
+-At the beginning the inventory contains all the objects needed to surpass traps (except keys).
 -for every room, display its image/video, description, and available directions as buttons.
 -if a connection between rooms is locked, the direction button is disabled unless the player has the right key in the inventory
 -Traps block movement until resolved
--the player must choose the correct object between the ones in the inventory to surpass traps, otherwise the player loses one life.
+-the player must choose the correct object between the ones in the inventory to surpass traps
+-if the player chooses the wrong object to surpass a trap loses one life.
 -Puzzles block movement until answered
--the player must type the correct answer to puzzles, otherwise the player loses one life.
--Life system: three hearts; reaching 0 hearts triggers a game-over screen.
+-the player must type the correct answer to puzzles
+-if the  player doesn't type the correct answer to a puzzle he loses one life.
+-Losing all life will trigger a game-over screen.
 -Entering the goal room triggers a victory screen.
 -Victory or game-over disables all further input.
 Visual / interaction requirements:
--Provide a fantasy-appropriate image (Unsplash) or short looping video (Pixabay) for every room.
+-Provide a fantasy-appropriate image (Pexels or Pixabay) for every room.
 -Hearts (♥) visually represent the remaining lives and update instantly.
--The inventory panel lists only the keys currently helda key disappears immediately after use.
+-The inventory panel lists all the object that the player can use including keys which will disappear immediately after use.
 -Use concise, meaningful IDs and class names; no external libraries or assets.
 Output rules:
 -Return only the raw HTML code — no Markdown, no explanations, no extra files.

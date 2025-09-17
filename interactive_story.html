@@ -1,149 +1,249 @@
+```html
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Temple of Shadows</title>
+<title>Treasure Quest</title>
 <style>
-    html,body{margin:0;height:100%;font-family:'Segoe UI',sans-serif;background:#000;color:#fafafa}
-    #game{display:grid;grid-template-columns:260px 1fr;height:100vh;overflow:hidden}
-    #sidebar{background:#111;padding:12px 14px;box-sizing:border-box}
-    h2{margin:10px 0 4px;font-size:18px}
-    #inventory{list-style:none;padding:0;margin:0;max-height:45vh;overflow-y:auto}
-    #inventory li{margin:2px 0;padding:2px 4px;background:#222;border-radius:4px;font-size:14px}
-    #hearts{font-size:24px;letter-spacing:3px;margin-bottom:8px}
-    #main{position:relative;overflow:hidden}
-    #room-image{width:100%;height:60vh;object-fit:cover;display:block}
-    #room-name{font-size:28px;font-weight:600;margin:6px 12px 2px}
-    #room-desc{font-size:15px;margin:0 12px 12px;min-height:40px}
-    #movement{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:0 12px}
-    #movement button{padding:10px 6px;font-size:15px;background:#272727;border:none;color:#fff;border-radius:6px;cursor:pointer}
-    #movement button[disabled]{opacity:.4;cursor:not-allowed}
-    #overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;text-align:center;padding:20px;box-sizing:border-box;z-index:999}
-    #overlay.show{display:flex}
-    #overlay h1{margin:0 0 10px;font-size:42px}
-    #overlay p{margin:0;font-size:18px}
-    @media (max-width:800px){#game{grid-template-columns:200px 1fr}}
+body {
+  font-family: sans-serif;
+  background-color: #222;
+  color: #eee;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  height: 100vh;
+  margin: 0;
+}
+.panel {
+  padding: 10px;
+  border: 1px solid #555;
+}
+.room {
+  text-align: center;
+}
+.room img {
+  max-width: 100%;
+  max-height: 300px;
+}
+.inventory {
+  list-style: none;
+  padding: 0;
+}
+.inventory li {
+  margin-bottom: 5px;
+}
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+.overlay-content {
+  background-color: #333;
+  padding: 20px;
+  border: 1px solid #555;
+}
+.puzzle-input {
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 10px;
+}
 </style>
 </head>
 <body>
-<div id="game">
-    <div id="sidebar">
-        <h2>Vite</h2>
-        <div id="hearts"></div>
-        <h2>Chiavi</h2>
-        <ul id="inventory"></ul>
-    </div>
-    <div id="main">
-        <img id="room-image" src="" alt="">
-        <div id="room-name"></div>
-        <div id="room-desc"></div>
-        <div id="movement">
-            <button id="btn-n">Nord</button>
-            <button id="btn-e">Est</button>
-            <button id="btn-s">Sud</button>
-            <button id="btn-w">Ovest</button>
-        </div>
-    </div>
+<div class="panel" id="inventory-panel">
+  <h2>Inventory</h2>
+  <ul id="inventory"></ul>
 </div>
-<div id="overlay" onclick="this.classList.remove('show')">
-    <div>
-        <h1 id="ov-title"></h1>
-        <p id="ov-text"></p>
+<div id="game-panel">
+  <div id="lives">♥♥♥</div>
+  <div id="room-display">
+    <div id="room-image"></div>
+    <div id="room-description"></div>
+    <div id="room-buttons"></div>
+  </div>
+  <div id="game-over-overlay" class="overlay">
+    <div class="overlay-content">
+      <h1>Game Over</h1>
+      <button onclick="location.reload()">Restart</button>
     </div>
+  </div>
+  <div id="victory-overlay" class="overlay">
+    <div class="overlay-content">
+      <h1>Victory!</h1>
+      <button onclick="location.reload()">Restart</button>
+    </div>
+  </div>
+  <div id="trap-overlay" class="overlay">
+    <div class="overlay-content">
+      <p id="trap-message"></p>
+      <ul id="trap-choices"></ul>
+    </div>
+  </div>
+  <div id="puzzle-overlay" class="overlay">
+    <div class="overlay-content">
+      <p id="puzzle-message"></p>
+      <input type="text" id="puzzle-input" class="puzzle-input">
+      <button id="puzzle-submit">Submit</button>
+    </div>
+  </div>
 </div>
 
 <script>
-/* ---------- DATA ---------- */
-const rooms={
- 'entrance':{n:'TO_Torcia2',e:'TE_Oscurita13',s:'TE_Statua12',name:'Ingresso',img:'https://images.unsplash.com/photo-1589156282025-56d77f66b6e4?auto=format&fit=crop&w=1200&q=80',desc:'L’antico ingresso del tempio.'},
- 'TO_Torcia2':{s:'entrance',e:'LK43',name:'Caverna dei Pipistrelli',img:'https://images.unsplash.com/photo-1510192769125-8c1a5e36eebd?auto=format&fit=crop&w=1200&q=80',desc:'Una caverna infestata da pipistrelli.',trapItem:'Torcia'},
- 'LK43':{w:'TO_Torcia2',e:'TE_Tempo4',name:'Camera della Chiave 4',img:'https://images.unsplash.com/photo-1520975692151-48155f7eb45a?auto=format&fit=crop&w=1200&q=80',desc:'Una nicchia custodisce una chiave.'},
- 'TE_Tempo4':{w:'LK43',s:'LK214',e:'TO_Gas5',name:'Sala del Tempo',img:'https://images.unsplash.com/photo-1533056784812-5b80b624ac94?auto=format&fit=crop&w=1200&q=80',desc:'Un antico meccanismo scandisce il tempo.',puzzle:{q:'Digita la parola magica legata al tempo:',a:'tempo'}},
- 'TO_Gas5':{w:'TE_Tempo4',e:'LV6',s:'TO_Asta_di_ferro15',name:'Camera del Gas',img:'https://images.unsplash.com/photo-1502139214984-407e01c42e31?auto=format&fit=crop&w=1200&q=80',desc:'Un gas verde e denso riempie la stanza.',trapItem:'Panno_bagnato'},
- 'LV6':{w:'TO_Gas5',s:'TE_Stagioni7',name:'Corridoio di Pietra',img:'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80',desc:'Un corridoio sicuro di pietra.'},
- 'TE_Stagioni7':{n:'LV6',s:'LK38',w:'TO_Asta_di_ferro15',name:'Sala delle Stagioni',img:'https://images.unsplash.com/photo-1499363536502-87642509e31b?auto=format&fit=crop&w=1200&q=80',desc:'I mosaici raffigurano le quattro stagioni.',puzzle:{q:'Digita la parola magica legata alle quattro sorelle:',a:'stagioni'}},
- 'LK38':{n:'TE_Stagioni7',w:'LV9',name:'Camera della Chiave 3',img:'https://images.unsplash.com/photo-1526026167906-3b02730988b1?auto=format&fit=crop&w=1200&q=80',desc:'Una chiave luccica su un piedistallo.'},
- 'LV9':{e:'LK38',w:'TO_Scudo10',n:'TO_Asta_di_ferro15',name:'Grande Salone',img:'https://images.unsplash.com/photo-1512918602525-9e1a41c668cf?auto=format&fit=crop&w=1200&q=80',desc:'Un ampio salone illuminato da torce.'},
- 'TO_Scudo10':{e:'LV9',n:'LK214',w:'LK111',name:'Corridoio delle Frecce',img:'https://images.unsplash.com/photo-1603126853675-be338387ef3e?auto=format&fit=crop&w=1200&q=80',desc:'Scanalature nei muri nascondono frecce mortali.',trapItem:'Scudo'},
- 'LK111':{e:'TO_Scudo10',w:'TE_Oscurita13',name:'Camera della Chiave 1',img:'https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=1200&q=80',desc:'Una chiave pende da una statua.'},
- 'TE_Statua12':{n:'entrance',e:'LK214',name:'Sala della Statua',img:'https://images.unsplash.com/photo-1511918984145-48de785d4cd0?auto=format&fit=crop&w=1200&q=80',desc:'Una statua colossale ti fissa.',puzzle:{q:'Digita la parola magica per risvegliare la statua:',a:'statua'}},
- 'TE_Oscurita13':{e:'LK214',s:'LK111',w:'entrance',name:'Sala dell’Oscurità',img:'https://images.unsplash.com/photo-1517957754642-df3e5c03f7cb?auto=format&fit=crop&w=1200&q=80',desc:'Una tenebra palpabile avvolge tutto.',puzzle:{q:'Digita la parola magica che scaccia l\'oscurità:',a:'ombra'}},
- 'LK214':{n:'TE_Tempo4',e:'TO_Scudo10',s:'TE_Statua12',w:'TE_Oscurita13',name:'Camera della Chiave 2',img:'https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&fit=crop&w=1200&q=80',desc:'La chiave giace su un altare.'},
- 'TO_Asta_di_ferro15':{n:'TO_Gas5',e:'TE_Stagioni7',s:'LV9',w:'treasure_antechamber16',name:'Sala della Leva',img:'https://images.unsplash.com/photo-1495653797063-114787b77b23?auto=format&fit=crop&w=1200&q=80',desc:'Una leva metallica spunta dall’acqua.',trapItem:'Asta_di_ferro'},
- 'treasure_antechamber16':{e:'TO_Asta_di_ferro15',w:'treasure_room',name:'Anticamera del Tesoro',img:'https://images.unsplash.com/photo-1605981993102-7fc05459e385?auto=format&fit=crop&w=1200&q=80',desc:'La porta finale è davanti a te.',puzzle:{q:'Digita la parola magica che apre la camera del tesoro:',a:'ricchezza'}},
- 'treasure_room':{e:'treasure_antechamber16',name:'Camera del Tesoro',img:'https://images.unsplash.com/photo-1502805941142-2ed2b1bf8912?auto=format&fit=crop&w=1200&q=80',desc:'Montagne di oro scintillano alla luce.'}
+const rooms = {
+  1: {name: "entrance", img: "https://www.pexels.com/photo/ancient-ruins-in-the-jungle-7368174/", desc: "You are at the entrance of the temple.", connections: {n: 2, e: 13, s: 12}},
+  2: {name: "TO_Torcia2", img: "https://www.pexels.com/photo/dark-cave-with-bats-flying-around-7368174/", desc: "Bats are blocking your way!", connections: {s: 1, e: 3}, trap: true, item: "torcia", puzzle: "p2"},
+  3: {name: "LK43", img: "https://www.pexels.com/photo/ancient-stone-building-7368174/", desc: "You found a key!", connections: {e: 4, w: 2}, key: "k4"},
+  4: {name: "TE_Tempo4", img: "https://www.pexels.com/photo/ancient-stone-building-7368174/", desc: "A time puzzle blocks your way!", connections: {e: 5, s: 14, w: 3}, locked: true, lockKey: "k1", puzzle: "p4"},
+  5: {name: "TO_Gas5", img: "https://www.pexels.com/photo/ancient-stone-building-7368174/", desc: "Toxic gas fills the room!", connections: {e: 6, s: 15, w: 4}, locked: true, lockKey: "k1", trap: true, item: "panno_bagnato", puzzle: "p5"},
+  6: {name: "LV6", img: "https://www.pexels.com/photo/ancient-stone-building-7368174/", desc: "A safe room.", connections: {s: 7, w: 5}},
+  7: {name: "TE_Stagioni7", img: "https://www.pexels.com/photo/ancient-stone-building-7368174/", desc: "A season puzzle blocks your way!", connections: {n: 6, s: 8, w: 15}, locked: true, lockKey: "k3", puzzle: "p7"},
+  8: {name: "LK38", img: "https://www.pexels.com/photo/ancient-stone-building-7368174/", desc: "You found a key!", connections: {n: 7, w: 9}, key: "k3"},
+  9: {name: "LV9", img: "https://www.pexels.com/photo/ancient-stone-building-7368174/", desc: "A safe room.", connections: {e: 8, w: 10, n: 15}, locked: true, lockKey: "k2"},
+  10: {name: "TO_Scudo10", img: "https://www.pexels.com/photo/ancient-stone-building-7368174/", desc: "Arrows are flying!", connections: {e: 9, w: 11}, locked: true, lockKey: "k4", trap: true, item: "scudo", puzzle: "p10"},
+  11: {name: "LK111", img: "https://www.pexels.com/photo/ancient-stone-building-7368174/", desc: "You found a key!", connections: {e: 10, w: 13}, key: "k1"},
+  12: {name: "TE_Statua12", img: "https://www.pexels.com/photo/ancient-stone-building-7368174/", desc: "A statue puzzle blocks your way!", connections: {n: 1, e: 14}, puzzle: "p12"},
+  13: {name: "TE_Oscurita13", img: "https://www.pexels.com/photo/ancient-stone-building-7368174/", desc: "A darkness puzzle blocks your way!", connections: {s: 11, e: 14, w: 1}, puzzle: "p13"},
+  14: {name: "LK214", img: "https://www.pexels.com/photo/ancient-stone-building-7368174/", desc: "You found a key!", connections: {n: 4, e: 13, s: 12}, key: "k2"},
+  15: {name: "TO_Asta_di_ferro15", img: "https://www.pexels.com/photo/ancient-stone-building-7368174/", desc: "A lever puzzle blocks your way!", connections: {n: 5, e: 7, s: 9, w: 16}, trap: true, item: "asta_di_ferro", puzzle: "p15"},
+  16: {name: "treasure_antechamber16", img: "https://www.pexels.com/photo/ancient-stone-building-7368174/", desc: "The treasure antechamber!", connections: {e: 15}, puzzle: "p16"},
+  17: {name: "treasure_room", img: "https://www.pexels.com/photo/ancient-stone-building-7368174/", desc: "You found the treasure!", connections: {}}
 };
-const lockedDoors={
- 'TE_Tempo4|TO_Gas5':'k1','TO_Gas5|TE_Tempo4':'k1','TO_Gas5|TO_Asta_di_ferro15':'k1',
- 'TE_Stagioni7|TO_Asta_di_ferro15':'k3','LV9|TO_Asta_di_ferro15':'k2',
- 'LV9|TO_Scudo10':'k4','TO_Scudo10|LV9':'k4',
- 'TO_Asta_di_ferro15|TO_Gas5':'k1','TO_Asta_di_ferro15|TE_Stagioni7':'k3','TO_Asta_di_ferro15|LV9':'k2'
-};
-const keyLocations={'LK111':'k1','LK214':'k2','LK38':'k3','LK43':'k4'};
-const items=['Torcia','Panno_bagnato','Scudo','Asta_di_ferro'];
-let keys=[];
-/* ---------- STATE ---------- */
-let room='entrance';
-let hearts=3;
-let active=true;
-/* ---------- ELEMENTS ---------- */
-const imgEl=$('#room-image'),nameEl=$('#room-name'),descEl=$('#room-desc');
-const heartEl=$('#hearts'),invEl=$('#inventory');
-const overlay=$('#overlay'),ovT=$('#ov-title'),ovTxt=$('#ov-text');
-const dirBtn={n:$('#btn-n'),e:$('#btn-e'),s:$('#btn-s'),w:$('#btn-w')};
-/* ---------- HELPERS ---------- */
-function $(q){return document.querySelector(q)}
-function showOverlay(t,m){ovT.textContent=t;ovTxt.textContent=m;overlay.classList.add('show')}
-function updateHearts(){heartEl.innerHTML='♥'.repeat(hearts)+'♡'.repeat(3-hearts)}
-function updateInventory(){invEl.innerHTML='';keys.forEach(k=>{const li=document.createElement('li');li.textContent=k;invEl.appendChild(li)})}
-function unlockAll(key){for(const d in lockedDoors)if(lockedDoors[d]===key)delete lockedDoors[d]}
-function enterRoom(id){
- room=id;
- const r=rooms[room];
- imgEl.src=r.img;nameEl.textContent=r.name;descEl.textContent=r.desc;
- /* key pickup */
- if(keyLocations[room]){const k=keyLocations[room];keys.push(k);delete keyLocations[room];showOverlay('Chiave trovata','Hai raccolto '+k);updateInventory()}
- /* trap */
- if(r.trapItem&&!r.trapCleared){
-   if(items.includes(r.trapItem)){r.trapCleared=true;showOverlay('Trappola evitata','Hai usato '+r.trapItem+'.')}
-   else{hearts--;updateHearts();showOverlay('Trappola!','Hai perso una vita.');if(hearts===0)return gameOver()}
- }
- /* puzzle */
- if(r.puzzle&&!r.puzzle.solved){
-   const ans=prompt(r.puzzle.q);
-   if(ans&&ans.trim().toLowerCase()===r.puzzle.a){r.puzzle.solved=true;showOverlay('Puzzle risolto','La via è libera.')}
-   else{return gameOver('Hai fallito il puzzle!')}
- }
- /* victory */
- if(room==='treasure_room'){return victory()}
- /* buttons */
- ['n','e','s','w'].forEach(d=>{
-   const dest=r[d];if(!dest){dirBtn[d].style.display='none';return}
-   dirBtn[d].style.display='block';
-   const keyNeeded=lockedDoors[r.name?`${room}`:''];//not used
-   const pair=`${room}|${dest}`;
-   if(lockedDoors[pair]){
-     if(keys.includes(lockedDoors[pair])){dirBtn[d].disabled=false}else{dirBtn[d].disabled=true}
-   }else{dirBtn[d].disabled=false}
- })
+
+const inventory = ["torcia", "panno_bagnato", "scudo", "asta_di_ferro"];
+let lives = 3;
+let currentRoom = 1;
+let keys = {};
+
+function updateLives() {
+  document.getElementById("lives").textContent = "♥".repeat(lives);
 }
-function attemptMove(dir){
- if(!active)return;
- const r=rooms[room],dest=r[dir];if(!dest)return;
- const pair=`${room}|${dest}`;
- if(lockedDoors[pair]){
-   const k=lockedDoors[pair];
-   if(!keys.includes(k)){showOverlay('Porta chiusa','Serve la chiave '+k);return}
-   keys.splice(keys.indexOf(k),1);updateInventory();unlockAll(k);showOverlay('Porta aperta','Hai usato la chiave '+k);
- }
- enterRoom(dest)
+
+function updateInventory() {
+  const inventoryList = document.getElementById("inventory");
+  inventoryList.innerHTML = "";
+  inventory.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    inventoryList.appendChild(li);
+  });
 }
-function gameOver(msg='Hai perso tutte le vite!'){active=false;showOverlay('GAME OVER',msg);Object.values(dirBtn).forEach(b=>b.disabled=true)}
-function victory(){active=false;showOverlay('VITTORIA!','Hai trovato il tesoro.');Object.values(dirBtn).forEach(b=>b.disabled=true)}
-/* ---------- INIT ---------- */
-updateHearts();updateInventory();
-Object.entries(dirBtn).forEach(([d,b])=>b.onclick=()=>attemptMove(d));
-enterRoom(room);
+
+function updateRoomDisplay() {
+  const room = rooms[currentRoom];
+  document.getElementById("room-image").innerHTML = `<img src="${room.img}" alt="${room.name}">`;
+  document.getElementById("room-description").textContent = room.desc;
+  const buttons = document.getElementById("room-buttons");
+  buttons.innerHTML = "";
+  for (const dir in room.connections) {
+    const connection = room.connections[dir];
+    const button = document.createElement("button");
+    button.textContent = dir;
+    button.onclick = () => move(currentRoom, room.connections[dir]);
+    if (rooms[connection].locked && !(rooms[connection].lockKey in keys)) {
+      button.disabled = true;
+    }
+    buttons.appendChild(button);
+  }
+}
+
+function move(from, to) {
+  const room = rooms[to];
+  if (room.trap) {
+    showTrapOverlay(to);
+  } else if (room.puzzle) {
+    showPuzzleOverlay(to);
+  } else {
+    currentRoom = to;
+    updateRoomDisplay();
+  }
+}
+
+function showTrapOverlay(roomId) {
+  const room = rooms[roomId];
+  const overlay = document.getElementById("trap-overlay");
+  const message = document.getElementById("trap-message");
+  const choices = document.getElementById("trap-choices");
+  message.textContent = `Choose the correct item to overcome the trap in ${room.name}:`;
+  choices.innerHTML = "";
+  inventory.forEach(item => {
+    const li = document.createElement("li");
+    const button = document.createElement("button");
+    button.textContent = item;
+    button.onclick = () => handleTrapChoice(roomId, item);
+    li.appendChild(button);
+    choices.appendChild(li);
+  });
+  overlay.style.display = "block";
+}
+
+function handleTrapChoice(roomId, item) {
+  const room = rooms[roomId];
+  const overlay = document.getElementById("trap-overlay");
+  if (item === room.item) {
+    const index = inventory.indexOf(item);
+    if (index > -1) {
+      inventory.splice(index, 1);
+    }
+    rooms[roomId].trap = false;
+    overlay.style.display = "none";
+    move(currentRoom, roomId);
+    updateInventory();
+  } else {
+    lives--;
+    updateLives();
+    if (lives === 0) {
+      gameOver();
+    }
+    overlay.style.display = "none";
+  }
+}
+
+function showPuzzleOverlay(roomId) {
+  const room = rooms[roomId];
+  const overlay = document.getElementById("puzzle-overlay");
+  const message = document.getElementById("puzzle-message");
+  message.textContent = `Solve the puzzle in ${room.name}:`;
+  overlay.style.display = "block";
+}
+
+function handlePuzzleSubmit(roomId) {
+  const room = rooms[roomId];
+  const answer = document.getElementById("puzzle-input").value;
+  const overlay = document.getElementById("puzzle-overlay");
+  if (answer === room.puzzle) {
+    rooms[roomId].puzzle = false;
+    overlay.style.display = "none";
+    move(currentRoom, roomId);
+  } else {
+    lives--;
+    updateLives();
+    if (lives === 0) {
+      gameOver();
+    }
+    overlay.style.display = "none";
+  }
+}
+
+function gameOver() {
+  document.getElementById("game-over-overlay").style.display = "block";
+}
+
+function victory() {
+  document.getElementById("victory-overlay").style.display = "block";
+}
+
+document.getElementById("puzzle-submit").onclick = () => handlePuzzleSubmit(currentRoom);
+
+updateLives();
+updateInventory();
+updateRoomDisplay();
 </script>
+
 </body>
 </html>
+```
