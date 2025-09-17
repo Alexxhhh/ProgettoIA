@@ -10,9 +10,9 @@ llm = ChatGoogleGenerativeAI(
 )
 
 # Percorsi ai file di input
-lore_path = "/Users/andreadomenicogimbri/Desktop/ProgettoIA/lore/lore_2_s.txt"
-domain_path = "/Users/andreadomenicogimbri/Desktop/ProgettoIA/agents/pddl_output/domain.pddl"
-problem_path = "/Users/andreadomenicogimbri/Desktop/ProgettoIA/agents/pddl_output/problem.pddl"
+lore_path = "../ProgettoIA/lore/lore_2_s.txt"
+domain_path = "../ProgettoIA/agents/pddl_output/domain.pddl"
+problem_path = "../ProgettoIA/agents/pddl_output/problem.pddl"
 
 # Carico i contenuti
 with open(lore_path, "r", encoding="utf-8") as f:
@@ -26,7 +26,7 @@ with open(problem_path, "r", encoding="utf-8") as f:
 prompt = f"""
 Generate a standalone HTML file (all CSS and JavaScript inline) that provides a playable dark fantasy adventure, consisting of:
 - a Lore document (setting, characters, mission);
-- a PDDL domain + problem file that lists each room, key, trap, puzzle, life predicate, locked door, and the final objective.
+- a PDDL domain + problem file that lists each room, key, trap, puzzle, life predicate, locked , and the final objective.
 Layout:
 - the room name at the top (generate it based on the riddle or choose a random one based on the theme)
 - lives on the right
@@ -41,6 +41,7 @@ Layout:
 - At the start, the inventory contains all the items needed to overcome the traps (except keys).
 - For each room, display its image and the available directions as buttons.
 - If a connection between rooms is blocked, the directional button is disabled unless the player has the correct key in the inventory.
+- if the player enter in a room with a key, the key is added to the inventory and a message appears saying "You found a key!".
 - Entering the objective room leads to a screen that says "Victory."
 - Victory or a game over disables any further input.
 Visual/Interaction Requirements:
@@ -53,6 +54,7 @@ Visual/Interaction Requirements:
 - Clicking on the NSWE buttons must take you to the designated room.
 - From the user view, everything must be in Italian.
 - The HTML page must be complete and functional; generate everything and test it, fixing any errors.
+
 === LORE ===
 {lore}
 

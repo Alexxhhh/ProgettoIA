@@ -27,17 +27,17 @@ body {
   padding: 10px;
   border: 1px solid #555;
   border-radius: 5px;
-  text-align: center;
+  margin-top: 20px;
 }
 #room-image {
-  width: 400px;
-  height: 300px;
-  margin-top: 10px;
+  max-width: 500px;
+  max-height: 300px;
+  margin-top: 20px;
 }
 #directions {
   display: flex;
   justify-content: center;
-  margin-top: 10px;
+  margin-top: 20px;
 }
 button {
   background-color: #444;
@@ -45,7 +45,7 @@ button {
   border: 1px solid #555;
   border-radius: 5px;
   padding: 10px 20px;
-  margin: 0 5px;
+  margin: 0 10px;
   cursor: pointer;
 }
 button:disabled {
@@ -53,15 +53,14 @@ button:disabled {
   cursor: default;
 }
 #riddle-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 10px;
+  display: none;
+  margin-top: 20px;
 }
-#riddle-answer {
-  width: 200px;
-  padding: 5px;
-  margin-bottom: 5px;
+#riddle-text {
+  width: 300px;
+  padding: 10px;
+  border: 1px solid #555;
+  border-radius: 5px;
 }
 #game-over, #victory {
   display: none;
@@ -73,10 +72,13 @@ button:disabled {
 <body>
 <h1>Caccia al Tesoro</h1>
 <div id="game-container">
-  <div id="inventory">Inventario:<br><span id="inventory-list"></span></div>
+  <div id="inventory">
+    <h2>Inventario</h2>
+    <ul id="inventory-list"></ul>
+  </div>
   <div>
     <h2 id="room-name">Stanza d'ingresso</h2>
-    <img id="room-image" src="https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/" alt="Stanza d'ingresso">
+    <img id="room-image" src="https://www.pexels.com/photo/dark-fantasy-forest-path-736886/" alt="Stanza d'ingresso">
     <div id="directions">
       <button id="btn-n" disabled>N</button>
       <button id="btn-s" disabled>S</button>
@@ -85,93 +87,106 @@ button:disabled {
     </div>
     <div id="key-needed">X</div>
     <div id="riddle-container">
-      <p id="riddle-text"></p>
-      <input type="text" id="riddle-answer" placeholder="Inserisci la risposta">
-      <button id="riddle-submit">Invia</button>
+      <p id="riddle-question"></p>
+      <input type="text" id="riddle-answer">
+      <button id="submit-answer">Invia risposta</button>
     </div>
   </div>
-  <div id="lives">Vite: <span id="lives-count">♥♥♥</span></div>
+  <div id="lives">
+    <h2>Vite: <span id="lives-count">♥♥♥</span></h2>
+  </div>
 </div>
-<div id="game-over">Game Over!</div>
+<div id="game-over">Game Over</div>
 <div id="victory">Vittorioso!</div>
 
 <script>
 const rooms = {
-  1: {name: "Stanza d'ingresso", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", n: 2, s: 12, e: 13},
-  2: {name: "Stanza dei Pipistrelli", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", riddle: "La stanza è piena di pipistrelli, che oggetto intendi usare per attraversarla?", answer: "Torcia", n:3, s:1},
-  3: {name: "Stanza della Chiave 4", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", e:4, w:2},
-  4: {name: "Stanza del Tempo", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", riddle: "Mi trovi nel presente, ma non posso essere toccato. Passo silenzioso, nessuno mi vede arrivare. Posso guarire o distruggere. Chi sono?", answer: "Tempo", e:5, s:14, w:3},
-  5: {name: "Stanza del Gas", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", riddle: "Hai azionato una trappola e la stanza si sta riempiendo di gas! Che oggetto vuoi usare?", answer: "Panno_bagnato", e:6, s:15, w:4},
-  6: {name: "Stanza Sicura 6", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", s:7, w:5},
-  7: {name: "Stanza delle Stagioni", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", riddle: "Fratelli corrono insieme, nessuno lascia mai il proprio cammino. A volte sono calmi, a volte in guerra, ma sempre si inseguono all'infinito.", answer: "Stagioni", n:6, s:8, w:15},
-  8: {name: "Stanza della Chiave 3", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", n:7, w:9},
-  9: {name: "Stanza Sicura 9", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", e:8, w:10, n:15},
-  10: {name: "Stanza degli Archi", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", riddle: "La stanza è piena di buchi sulle pareti. Che oggetto vuoi usare per proseguire?", answer: "Scudo", e:9, w:11},
-  11: {name: "Stanza della Chiave 1", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", e:10, w:13},
-  12: {name: "Stanza della Statua", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", riddle: "Ho occhi ma non posso vedere, una bocca ma non posso parlare, una forma umana ma non lo sono. Chi sono?", answer: "Statua", n:1, e:14},
-  13: {name: "Stanza dell'Oscurità", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", riddle: "Più passa il tempo, più divento grande. Vivo dove la luce non osa entrare. Un giorno conquisterò anche l'universo. Cosa sono?", answer: "Oscurità", s:11, w:1},
-  14: {name: "Stanza della Chiave 2", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", n:4, e:12, w:13},
-  15: {name: "Stanza dell'Alluvione", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", riddle: "Le porte si sono chiuse e la stanza si sta riempiendo d'acqua! Vedi una leva quasi sommersa, che oggetto vuoi usare?", answer: "Asta_di_ferro", n:5, e:7, s:9, w:16},
-  16: {name: "Anticamera del Tesoro", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/", riddle: "Chi è che al mattino cammina con 4 zampe, a mezzogiorno con 2 e la sera con 3?", answer: "Uomo", e:15, w:17},
-  17: {name: "Stanza del Tesoro", image: "https://www.pexels.com/photo/dark-fantasy-forest-path-7368867/"}
+  1: {name: "entrance", img: "https://www.pexels.com/photo/dark-fantasy-forest-path-736886/", n: 2, s: 12, e: 13},
+  2: {name: "TO_Torcia2", img: "https://www.pexels.com/photo/dark-fantasy-cave-entrance-736885/", riddle: "La stanza è piena di pipistrelli, che oggetto intendi usare per attraversarla?", answer: "Torcia", e: 3, s: 1},
+  3: {name: "LK43", img: "https://www.pexels.com/photo/dark-fantasy-stone-bridge-736887/", e: 4, w: 2},
+  4: {name: "TE_Tempo4", img: "https://www.pexels.com/photo/dark-fantasy-forest-path-736886/", riddle: "Mi trovi nel presente, ma non posso essere toccato. Passo silenzioso, nessuno mi vede arrivare. Posso guarire o distruggere. Chi sono?", answer: "Tempo", e: 5, s: 14, w: 3},
+  5: {name: "TO_Gas5", img: "https://www.pexels.com/photo/dark-fantasy-dungeon-736884/", riddle: "Hai azionato una trappola e la stanza si sta riempiendo di gas! Che oggetto vuoi usare?", answer: "Panno_bagnato", e: 6, s: 15, w: 4},
+  6: {name: "LV6", img: "https://www.pexels.com/photo/dark-fantasy-castle-736883/", s: 7, w: 5},
+  7: {name: "TE_Stagioni7", img: "https://www.pexels.com/photo/dark-fantasy-forest-736882/", riddle: "Fratelli corrono insieme, nessuno lascia mai il proprio cammino. A volte sono calmi, a volte in guerra, ma sempre si inseguono all'infinito.", answer: "Stagioni", n: 6, s: 8, w: 15},
+  8: {name: "LK38", img: "https://www.pexels.com/photo/dark-fantasy-forest-path-736886/", n: 7, w: 9},
+  9: {name: "LV9", img: "https://www.pexels.com/photo/dark-fantasy-castle-736883/", n: 15, e: 8, w: 10},
+  10: {name: "TO_Scudo10", img: "https://www.pexels.com/photo/dark-fantasy-dungeon-736884/", riddle: "La stanza è piena di buchi sulle pareti. Che oggetto vuoi usare per proseguire?", answer: "Scudo", e: 9, w: 11},
+  11: {name: "LK111", img: "https://www.pexels.com/photo/dark-fantasy-stone-bridge-736887/", e: 10, w: 13},
+  12: {name: "TE_Statua12", img: "https://www.pexels.com/photo/dark-fantasy-forest-736882/", riddle: "Ho occhi ma non posso vedere, una bocca ma non posso parlare, una forma umana ma non lo sono. Chi sono?", answer: "Statua", n: 1, e: 14},
+  13: {name: "TE_Oscurita13", img: "https://www.pexels.com/photo/dark-fantasy-forest-path-736886/", riddle: "Più passa il tempo, più divento grande. Vivo dove la luce non osa entrare. Un giorno conquistero' anche l'universo. Cosa sono?", answer: "Oscurità", s: 11, w: 1},
+  14: {name: "LK214", img: "https://www.pexels.com/photo/dark-fantasy-cave-entrance-736885/", n: 4, e: 12, s: 13},
+  15: {name: "TO_Asta_di_ferro15", img: "https://www.pexels.com/photo/dark-fantasy-dungeon-736884/", riddle: "Le porte si sono chiuse e la stanza si sta riempiendo d'acqua! Vedi una leva quasi sommersa, che oggetto vuoi usare?", answer: "Asta_di_ferro", n: 5, e: 7, s: 9, w: 16},
+  16: {name: "treasure_antechamber16", img: "https://www.pexels.com/photo/dark-fantasy-castle-736883/", riddle: "Chi è che al mattino cammina con 4 zampe, a mezzogiorno con 2 e la sera con 3?", answer: "Uomo", e: 15, w: 17},
+  17: {name: "treasure_room", img: "https://www.pexels.com/photo/dark-fantasy-treasure-chest-736881/"}
 };
-
-const inventory = ["Torcia", "Panno_bagnato", "Scudo", "Asta_di_ferro"];
-let lives = 3;
+const keys = ["k1", "k2", "k3", "k4"];
+const items = ["Torcia", "Panno_bagnato", "Scudo", "Asta_di_ferro"];
 let currentRoom = 1;
-let keys = {};
+let lives = 3;
+let inventory = [...items];
+let hasKeys = [false, false, false, false];
 
-updateDisplay();
-
-function updateDisplay() {
-  document.getElementById("room-name").textContent = rooms[currentRoom].name;
-  document.getElementById("room-image").src = rooms[currentRoom].image;
+function updateUI() {
+  const roomData = rooms[currentRoom];
+  document.getElementById("room-name").textContent = "Stanza: " + (roomData.name.charAt(0).toUpperCase() + roomData.name.slice(1));
+  document.getElementById("room-image").src = roomData.img;
   document.getElementById("lives-count").textContent = "♥".repeat(lives);
-  document.getElementById("inventory-list").textContent = inventory.join(", ");
+  document.getElementById("inventory-list").innerHTML = inventory.concat(hasKeys.map((key, index) => key ? keys[index] : "").filter(item => item)).map(item => `<li>${item}</li>`).join("");
 
-  const directions = ["n", "s", "e", "w"];
-  directions.forEach(dir => {
-    const button = document.getElementById(`btn-${dir}`);
-    button.disabled = !(rooms[currentRoom][dir] && !rooms[currentRoom].riddle);
-  });
+  document.getElementById("btn-n").disabled = !(roomData.n && rooms[roomData.n]);
+  document.getElementById("btn-s").disabled = !(roomData.s && rooms[roomData.s]);
+  document.getElementById("btn-e").disabled = !(roomData.e && rooms[roomData.e]);
+  document.getElementById("btn-w").disabled = !(roomData.w && rooms[roomData.w]);
 
-  if (rooms[currentRoom].riddle) {
-    document.getElementById("riddle-text").textContent = rooms[currentRoom].riddle;
-    document.getElementById("riddle-container").style.display = "flex";
+  if (roomData.riddle) {
     document.getElementById("directions").style.display = "none";
+    document.getElementById("riddle-container").style.display = "block";
+    document.getElementById("riddle-question").textContent = roomData.riddle;
   } else {
-    document.getElementById("riddle-container").style.display = "none";
     document.getElementById("directions").style.display = "flex";
+    document.getElementById("riddle-container").style.display = "none";
   }
 
-  if (lives <= 0) {
-    document.getElementById("game-over").style.display = "block";
-    document.getElementById("game-container").style.display = "none";
-  } else if (currentRoom === 17) {
+  if (currentRoom === 17) {
     document.getElementById("victory").style.display = "block";
+    document.getElementById("game-container").style.display = "none";
+  } else if (lives <= 0) {
+    document.getElementById("game-over").style.display = "block";
     document.getElementById("game-container").style.display = "none";
   }
 }
 
-document.getElementById("riddle-submit").addEventListener("click", () => {
-  const answer = document.getElementById("riddle-answer").value;
-  if (answer.toLowerCase() === rooms[currentRoom].answer.toLowerCase()) {
-    rooms[currentRoom].riddle = null;
-    updateDisplay();
+document.getElementById("submit-answer").addEventListener("click", () => {
+  const roomData = rooms[currentRoom];
+  if (document.getElementById("riddle-answer").value.toLowerCase() === roomData.answer.toLowerCase()) {
+    delete roomData.riddle;
+    updateUI();
   } else {
     lives--;
-    updateDisplay();
+    if (lives <= 0) {
+      updateUI();
+    } else {
+      alert("Risposta sbagliata! Hai perso una vita.");
+      updateUI();
+    }
   }
 });
 
-document.querySelectorAll("#directions button").forEach(button => {
-  button.addEventListener("click", () => {
-    const direction = button.id.substring(4);
-    const nextRoom = rooms[currentRoom][direction];
+document.getElementById("btn-n").addEventListener("click", () => { move("n"); });
+document.getElementById("btn-s").addEventListener("click", () => { move("s"); });
+document.getElementById("btn-e").addEventListener("click", () => { move("e"); });
+document.getElementById("btn-w").addEventListener("click", () => { move("w"); });
+
+function move(direction) {
+  const roomData = rooms[currentRoom];
+  const nextRoom = roomData[direction];
+  if (nextRoom) {
     currentRoom = nextRoom;
-    updateDisplay();
-  });
-});
+    updateUI();
+  }
+}
+
+updateUI();
 </script>
 
 </body>
