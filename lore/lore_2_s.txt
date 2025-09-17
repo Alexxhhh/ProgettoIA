@@ -55,14 +55,14 @@ p16 16_treasure_antechamber (room 16), single try
    Question: chi è che al mattino cammina con 4 zampe a mezzogiorno con 2 e la sera con 3?
    Answer: Uomo
 
-6. Mappa stanze (id – nome – tipo - nome_visualizzato - descrizione - prompt_immagine)
+6. Mappa stanze (id – nome – tipo - nome_visualizzato - descrizione)
 
-1 - entrance - start - Entrate del tempio - Porta di pietra di un tempio
-2 - TO_Torcia2 - trap-puzzle p2 - Stanza buia - Stanza buoia di pietra piena di pipistrelli sul tetto
-3 - LK43 - key4 - Stanza con chiave - Una chiave su una pietra illuminata
-4 - TE_Tempo4 - trap-puzzle p4 - Stanza della saggezza - Stanza di pietra con a terra della sabbia illuminata
-5 - TO_Gas5 - trap-puzzle p5 - Stanza del gas - Stanza di pietra con del gas viola
-6 - LV6 - safe - Fontana - Stanza di pietra con una fontana in funzione
+1 - entrance - start - Entrate del tempio
+2 - TO_Torcia2 - trap-puzzle p2 - Stanza buia
+3 - LK43 - key4 - Stanza con chiave
+4 - TE_Tempo4 - trap-puzzle p4 - Stanza della saggezza
+5 - TO_Gas5 - trap-puzzle p5 - Stanza del gas
+6 - LV6 - safe - Fontana
 7 - TE_Stagioni7 - trap-puzzle p7 - Stanza dei fratelli - Stanza di pietra con quattro statue maschili composte
 8 - LK38 - key3 - Stamza con chiave - Una chiave su una pietra illuminata
 9 - LV9 - safe - Sedia - Una sedia di legno in una stanza di pietra
