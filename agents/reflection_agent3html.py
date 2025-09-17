@@ -33,10 +33,13 @@ Layout:
 -Do not create a third column: the inventory belongs inside the left panel.
 -All elements (buttons, media, overlays) appear only when needed (display:none/block) and must never cause horizontal scrolling at 1280 × 720 px.
 Game logic requirements:
--Every connected fact = a movement button for that direction.
--Every key_required fact = a locked door; it opens only if the matching key is in the inventory — the key is then consumed (removed).
--Traps block movement until resolved; the specified item avoids damage, otherwise the player loses one life.
--Puzzles block movement until answered; if single=true, a wrong answer ends the game.
+-the player starts in the entrance room with three lives (♥♥♥) and the inventory containing all the objects needed to surpass traps (except keys).
+-for every room, display its image/video, description, and available directions as buttons.
+-if a connection between rooms is locked, the direction button is disabled unless the player has the right key in the inventory
+-Traps block movement until resolved
+-the player must choose the correct object between the ones in the inventory to surpass traps, otherwise the player loses one life.
+-Puzzles block movement until answered
+-the player must type the correct answer to puzzles, otherwise the player loses one life.
 -Life system: three hearts; reaching 0 hearts triggers a game-over screen.
 -Entering the goal room triggers a victory screen.
 -Victory or game-over disables all further input.
