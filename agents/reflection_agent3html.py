@@ -1,7 +1,7 @@
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-API_KEY = "AIzaSyC-JBjbsQtI66ybyMA-b6C0Zrey5bB9X5E"
+API_KEY = "AIzaSyD6se7ue9rGlKoJcrtiJkk9nC0AcLuxvkM "
 os.environ["GOOGLE_API_KEY"] = API_KEY          # <── AGGIUNGI
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash-latest",
@@ -10,7 +10,7 @@ llm = ChatGoogleGenerativeAI(
 )
 
 # Percorsi ai file di input
-lore_path = "/Users/andreadomenicogimbri/Desktop/ProgettoIA/lore/lore_3_s.txt"
+lore_path = "/Users/andreadomenicogimbri/Desktop/ProgettoIA/lore/lore_2_s.txt"
 domain_path = "/Users/andreadomenicogimbri/Desktop/ProgettoIA/agents/pddl_output/domain.pddl"
 problem_path = "/Users/andreadomenicogimbri/Desktop/ProgettoIA/agents/pddl_output/problem.pddl"
 
@@ -24,36 +24,35 @@ with open(problem_path, "r", encoding="utf-8") as f:
 
 # Costruisco il prompt per GPT
 prompt = f"""
-You are an AI.
-Generate one self-contained HTML file (all CSS & JavaScript inline) that delivers a playable dark-fantasy adventure built from:
- -a Lore document (setting, characters, quest);
- -a PDDL domain + problem file that lists every room, key, trap, puzzle, life predicate, locked door, and the final goal.
+Generate a standalone HTML file (all CSS and JavaScript inline) that provides a playable dark fantasy adventure, consisting of:
+- a Lore document (setting, characters, mission);
+- a PDDL domain + problem file that lists each room, key, trap, puzzle, life predicate, locked door, and the final objective.
 Layout:
--Use display:grid; grid-template-columns:260px 1fr; on the root container.
--Do not create a third column: the inventory belongs inside the left panel.
--All elements (buttons, media, overlays) appear only when needed (display:none/block) and must never cause horizontal scrolling at 1280 × 720 px.
-Game logic requirements:
--the player starts in the entrance room with three lives (♥♥♥) 
--At the beginning the inventory contains all the objects needed to surpass traps (except keys).
--for every room, display its image/video, description, and available directions as buttons.
--if a connection between rooms is locked, the direction button is disabled unless the player has the right key in the inventory
--Traps block movement until resolved
--the player must choose the correct object between the ones in the inventory to surpass traps
--if the player chooses the wrong object to surpass a trap loses one life.
--Puzzles block movement until answered
--the player must type the correct answer to puzzles
--if the  player doesn't type the correct answer to a puzzle he loses one life.
--Losing all life will trigger a game-over screen.
--Entering the goal room triggers a victory screen.
--Victory or game-over disables all further input.
-Visual / interaction requirements:
--Provide a fantasy-appropriate image (Pexels or Pixabay) for every room.
--Hearts (♥) visually represent the remaining lives and update instantly.
--The inventory panel lists all the object that the player can use including keys which will disappear immediately after use.
--Use concise, meaningful IDs and class names; no external libraries or assets.
-Output rules:
--Return only the raw HTML code — no Markdown, no explanations, no extra files.
--The file must run directly in any modern browser without additional resources.
+- the room name at the top (generate it based on the riddle or choose a random one based on the theme)
+- lives on the right
+- inventory on the left
+- the room image in the center
+- by default, the directions (nswe) are in the center below, which are buttons that can be pressed when the links are available and the corridors are free.
+- below the buttons, it is written which key is needed to unlock it, if needed (key N) or if there is no link (X).
+- if the room is a trap, hide the buttons and in their place write the riddle with a text field where the user enters an answer and a button to submit the answer. If the answer is incorrect, you lose a life. In any case, it permanently unlocks the room and makes the movement buttons reappear.
+- The player starts in the entrance room with three lives (♥♥♥).
+- If the number of lives drops to 0, it leads to a page that simply says "Game Over."
+- Each connection between rooms must be created according to the PDDL files.
+- At the start, the inventory contains all the items needed to overcome the traps (except keys).
+- For each room, display its image and the available directions as buttons.
+- If a connection between rooms is blocked, the directional button is disabled unless the player has the correct key in the inventory.
+- Entering the objective room leads to a screen that says "Victory."
+- Victory or a game over disables any further input.
+Visual/Interaction Requirements:
+- Provide an appropriate fantasy image (Pexels or Pixabay) for each room.
+- Hearts (♥) visually represent remaining lives and update instantly.
+- The inventory panel lists all items the player can use, including keys.
+- Use concise and meaningful IDs and class names; no external libraries or resources.
+- Return only raw HTML code: no Markdown, no explanations, no extra files.
+- The file must run directly in any modern browser without additional resources.
+- Clicking on the NSWE buttons must take you to the designated room.
+- From the user view, everything must be in Italian.
+- The HTML page must be complete and functional; generate everything and test it, fixing any errors.
 === LORE ===
 {lore}
 
