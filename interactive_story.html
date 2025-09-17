@@ -4,421 +4,404 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avventura nel Tempio Labirintico</title>
+    <title>Avventura nel Tempio</title>
     <style>
         :root {
             --bg-color: #1a1a1a;
-            --text-color: #e0e0e0;
-            --border-color: #444;
-            --accent-color: #8b0000;
-            --disabled-color: #555;
-            --font-family: 'Georgia', serif;
+            --text-color: #cccccc;
+            --border-color: #444444;
+            --accent-color: #9a2a2a;
+            --disabled-color: #555555;
+            --font-main: 'Georgia', serif;
         }
-
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: var(--font-family);
+            font-family: var(--font-main);
             margin: 0;
-            padding: 20px;
+            padding: 0;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
+            min-height: 100vh;
         }
-
         #game-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            max-width: 1200px;
-            width: 100%;
-        }
-
-        #inventory-panel {
-            flex: 1;
-            min-width: 200px;
+            width: 95%;
+            max-width: 1000px;
+            border: 2px solid var(--border-color);
             background-color: #252525;
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.7);
         }
-
-        #inventory-panel h2 {
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #111;
+            border-bottom: 2px solid var(--border-color);
+        }
+        #room-name {
+            margin: 0;
+            font-size: 1.8em;
             color: var(--accent-color);
+            text-shadow: 1px 1px 2px black;
+        }
+        #lives {
+            font-size: 2em;
+            color: var(--accent-color);
+            letter-spacing: 4px;
+        }
+        main {
+            display: flex;
+        }
+        #inventory-panel {
+            width: 200px;
+            padding: 20px;
+            border-right: 2px solid var(--border-color);
+            background-color: #1e1e1e;
+        }
+        #inventory-panel h3 {
+            margin-top: 0;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 5px;
-            margin-top: 0;
-            font-size: 1.2em;
         }
-
         #inventory-panel ul {
             list-style-type: none;
             padding: 0;
             margin: 0;
         }
-
         #inventory-panel li {
             margin-bottom: 8px;
-            font-size: 1em;
+            font-size: 1.1em;
         }
-
-        #main-panel {
-            flex: 3;
-            min-width: 600px;
-            background-color: #252525;
-            border: 1px solid var(--border-color);
+        #room-display {
+            flex-grow: 1;
             padding: 20px;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-
-        #room-name {
-            margin: 0;
-            color: var(--text-color);
-            font-size: 1.8em;
-        }
-
-        #lives-display {
-            font-size: 1.5em;
-            color: var(--accent-color);
-            letter-spacing: 2px;
-        }
-
-        #content-area {
             text-align: center;
         }
-
         #room-image {
             max-width: 100%;
             height: auto;
+            max-height: 400px;
             border: 2px solid var(--border-color);
-            border-radius: 4px;
-            margin-bottom: 20px;
             background-color: #000;
+            margin-bottom: 20px;
         }
-
         #room-description {
-            font-size: 1.1em;
+            font-size: 1.2em;
             line-height: 1.6;
-            min-height: 50px;
+            min-height: 60px;
         }
-
         #message-area {
-            color: #ffd700;
+            color: #f0e68c;
             font-style: italic;
-            min-height: 24px;
-            margin-top: 15px;
+            min-height: 25px;
+            margin: 10px 0;
+            font-size: 1.1em;
         }
-
-        footer {
-            margin-top: auto;
-            padding-top: 20px;
-            text-align: center;
+        #controls {
+            margin-top: 20px;
         }
-
-        .controls button {
+        #movement-buttons button, #puzzle-interface button {
+            font-family: var(--font-main);
+            font-size: 1.2em;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
             background-color: #333;
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            padding: 12px 24px;
-            margin: 5px;
-            cursor: pointer;
-            font-family: var(--font-family);
-            font-size: 1em;
-            border-radius: 4px;
-            transition: background-color 0.3s, color 0.3s;
+            min-width: 100px;
         }
-
-        .controls button:hover:not(:disabled) {
+        #movement-buttons button:hover:not(:disabled) {
             background-color: var(--accent-color);
-            color: #fff;
+            color: white;
         }
-
-        .controls button:disabled {
+        #movement-buttons button:disabled {
             background-color: #2a2a2a;
             color: var(--disabled-color);
             cursor: not-allowed;
             border-color: #333;
         }
-
-        #puzzle-controls input[type="text"] {
-            background-color: #333;
+        #puzzle-interface {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        #puzzle-question {
+            font-size: 1.1em;
+            font-style: italic;
+        }
+        #puzzle-input {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            padding: 12px;
-            font-family: var(--font-family);
-            font-size: 1em;
+            padding: 10px;
             width: 60%;
-            border-radius: 4px;
+            font-size: 1.1em;
+            text-align: center;
         }
-
-        #end-screen {
+        .hidden {
+            display: none !important;
+        }
+        .overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
+            background-color: rgba(0,0,0,0.85);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            text-align: center;
             z-index: 100;
         }
-
-        #end-message {
-            font-size: 3em;
-            color: #fff;
-            margin-bottom: 30px;
-            text-align: center;
+        .overlay h1 {
+            font-size: 4em;
+            margin-bottom: 20px;
         }
-
-        #end-screen button {
-            background-color: var(--accent-color);
-            color: #fff;
-            border: none;
+        .overlay button {
+            font-family: var(--font-main);
+            font-size: 1.5em;
             padding: 15px 30px;
-            font-size: 1.2em;
             cursor: pointer;
-            border-radius: 5px;
+            background-color: #333;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
         }
+        .overlay button:hover {
+            background-color: var(--accent-color);
+        }
+        #victory-screen h1 { color: #ffd700; }
+        #game-over-screen h1 { color: var(--accent-color); }
     </style>
 </head>
 <body>
 
     <div id="game-container">
-        <aside id="inventory-panel">
-            <h2>Inventario</h2>
-            <ul id="item-list"></ul>
-            <h2>Chiavi</h2>
-            <ul id="key-list"></ul>
-        </aside>
-        <div id="main-panel">
-            <header>
-                <h1 id="room-name"></h1>
-                <div id="lives-display"></div>
-            </header>
-            <main id="content-area">
-                <img id="room-image" src="" alt="Immagine della stanza" width="600" height="400">
+        <header>
+            <h1 id="room-name"></h1>
+            <div id="lives"></div>
+        </header>
+        <main>
+            <div id="inventory-panel">
+                <h3>Inventario</h3>
+                <ul id="inventory-items"></ul>
+                <h3>Chiavi</h3>
+                <ul id="inventory-keys"></ul>
+            </div>
+            <div id="room-display">
+                <img id="room-image" src="" alt="Immagine della stanza">
                 <p id="room-description"></p>
                 <div id="message-area"></div>
-            </main>
-            <footer>
-                <div id="puzzle-controls" class="controls" style="display: none;">
-                    <input type="text" id="puzzle-input" placeholder="Inserisci la risposta...">
-                    <button id="puzzle-submit">Invia</button>
+                <div id="controls">
+                    <div id="movement-buttons">
+                        <button id="btn-n" onclick="move('n')">Nord</button><br>
+                        <button id="btn-w" onclick="move('w')">Ovest</button>
+                        <button id="btn-e" onclick="move('e')">Est</button><br>
+                        <button id="btn-s" onclick="move('s')">Sud</button>
+                    </div>
+                    <div id="puzzle-interface" class="hidden">
+                        <p id="puzzle-question"></p>
+                        <input type="text" id="puzzle-input">
+                        <button id="btn-submit" onclick="submitAnswer()">Invia</button>
+                    </div>
                 </div>
-                <div id="movement-controls" class="controls">
-                    <button id="btn-n" onclick="move('n')">Nord</button>
-                    <br>
-                    <button id="btn-w" onclick="move('w')">Ovest</button>
-                    <button id="btn-e" onclick="move('e')">Est</button>
-                    <br>
-                    <button id="btn-s" onclick="move('s')">Sud</button>
-                </div>
-            </footer>
-        </div>
+            </div>
+        </main>
     </div>
 
-    <div id="end-screen" style="display: none;">
-        <div id="end-message"></div>
-        <button onclick="restartGame()">Ricomincia</button>
+    <div id="victory-screen" class="overlay hidden">
+        <h1>Congratulazioni!</h1>
+        <p>Hai trovato il tesoro!</p>
+        <button onclick="location.reload()">Ricomincia</button>
+    </div>
+
+    <div id="game-over-screen" class="overlay hidden">
+        <h1>Game Over!</h1>
+        <p>Sei rimasto senza vite.</p>
+        <button onclick="location.reload()">Ricomincia</button>
     </div>
 
     <script>
+        const images_path = 'jpg/';
+
         const gameData = {
             rooms: {
-                1: { name: "Entrate del tempio", description: "Le imponenti porte di pietra sono alle tue spalle. L'aria è fredda e umida. Davanti a te, il tempio attende.", connections: { n: 2, e: 13, s: 12 } },
-                2: { name: "Stanza buia", description: "Un fruscio di ali riempie l'aria. Senti la presenza di innumerevoli pipistrelli nell'oscurità.", connections: { e: 3, s: 1 }, puzzle: { type: 'object', question: "La stanza è piena di pipistrelli, che oggetto intendi usare per attraversarla?", answer: "Torcia", solved: false } },
-                3: { name: "Stanza con chiave", description: "Su un piedistallo di pietra logoro, noti una chiave di bronzo ossidato.", connections: { e: 4, w: 2 }, keyToCollect: 'k4' },
-                4: { name: "Stanza della saggezza", description: "Antichi tomi sono accatastati lungo le pareti, ma sono troppo fragili per essere toccati. Un'aura di conoscenza pervade la stanza.", connections: { e: 5, s: 14, w: 3 }, keyRequired: { e: 'k1' }, puzzle: { type: 'riddle', question: "Mi trovi nel presente, ma non posso essere toccato. Passo silenzioso, nessuno mi vede arrivare. Posso guarire o distruggere. Chi sono?", answer: "Tempo", solved: false } },
-                5: { name: "Stanza del gas", description: "Un sibilo inquietante proviene da fessure nelle pareti, e un gas verdastro inizia a riempire l'ambiente.", connections: { e: 6, s: 15, w: 4 }, keyRequired: { s: 'k1', w: 'k1' }, puzzle: { type: 'object', question: "Hai azionato una trappola e la stanza si sta riempiendo di gas! Che oggetto vuoi usare?", answer: "Panno_bagnato", solved: false } },
-                6: { name: "Fontana", description: "Una fontana zampilla al centro della stanza. L'acqua sembra pura e fresca, un raro conforto in questo luogo desolato.", connections: { s: 7, w: 5 } },
-                7: { name: "Stanza dei fratelli", description: "Quattro grandi bassorilievi sulle pareti raffigurano volti identici ma con espressioni diverse, che sembrano inseguirsi in un ciclo eterno.", connections: { n: 6, s: 8, w: 15 }, keyRequired: { w: 'k3' }, puzzle: { type: 'riddle', question: "Fratelli corrono insieme, nessuno lascia mai il proprio cammino. A volte sono calmi, a volte in guerra, ma sempre si inseguono all'infinito.", answer: "Stagioni", solved: false } },
-                8: { name: "Stanza con chiave", description: "Incastonata in una crepa del muro, brilla una chiave d'argento finemente lavorata.", connections: { n: 7, w: 9 }, keyToCollect: 'k3' },
-                9: { name: "Sedia", description: "Una singola, austera sedia di pietra siede al centro della stanza, rivolta verso il nulla. Inspira un senso di solitudine e attesa.", connections: { n: 15, e: 8, w: 10 }, keyRequired: { n: 'k2', w: 'k4' } },
-                10: { name: "Stanza dei buchi", description: "Le pareti sono costellate di piccoli fori. Senti un leggero click sotto i tuoi piedi, come se un meccanismo si fosse attivato.", connections: { n: 14, e: 9, w: 11 }, keyRequired: { e: 'k4' }, puzzle: { type: 'object', question: "La stanza è piena di buchi sulle pareti. Che oggetto vuoi usare per proseguire?", answer: "Scudo", solved: false } },
-                11: { name: "Stanza con chiave", description: "Una chiave dorata pende da una catena arrugginita, appesa al soffitto al centro della stanza.", connections: { e: 10, w: 13 }, keyToCollect: 'k1' },
-                12: { name: "Stanza misteriosa", description: "Una grande statua di un guerriero senza volto domina la stanza. I suoi occhi cavi sembrano seguirti.", connections: { n: 1, e: 14 }, puzzle: { type: 'riddle', question: "Ho occhi ma non posso vedere, una bocca ma non posso parlare, una forma umana ma non lo sono. Chi sono?", answer: "Statua", solved: false } },
-                13: { name: "Stanza opaca", description: "L'oscurità qui è quasi tangibile, più densa che in qualsiasi altra parte del tempio. La luce della tua torcia sembra essere assorbita dalle pareti.", connections: { e: 14, s: 11, w: 1 }, puzzle: { type: 'riddle', question: "Più passa il tempo, più divento grande. Vivo dove la luce non osa entrare. Un giorno conquistero' anche l'universo. Cosa sono?", answer: "Oscurità", solved: false } },
-                14: { name: "Stanza con chiave", description: "Appoggiata su un altare sacrificale, trovi una chiave di ferro nero, fredda al tatto.", connections: { n: 4, e: 10, s: 12, w: 13 }, keyToCollect: 'k2' },
-                15: { name: "Stanza dell'acqua", description: "Appena entri, le porte si sigillano e l'acqua inizia a salire rapidamente dal pavimento. Vedi una leva arrugginita quasi sommersa.", connections: { n: 5, e: 7, s: 9, w: 16 }, keyRequired: { n: 'k1', e: 'k3', s: 'k2' }, puzzle: { type: 'object', question: "Le porte si sono chiuse e la stanza si sta riempiendo d'acqua! Vedi una leva quasi sommersa, che oggetto vuoi usare?", answer: "Asta_di_ferro", solved: false } },
-                16: { name: "Anticamera del tesoro", description: "Una porta massiccia e decorata blocca il passaggio. Un'iscrizione sopra di essa pone un ultimo enigma. Senti che non ti saranno concessi errori.", connections: { e: 15, w: 17 }, puzzle: { type: 'riddle', question: "Chi è che al mattino cammina con 4 zampe, a mezzogiorno con 2 e la sera con 3?", answer: "Uomo", solved: false, singleTry: true } },
-                17: { name: "Stanza del tesoro", description: "Hai raggiunto la meta! Cumuli d'oro, gemme e antichi manufatti riempiono la stanza, brillando alla luce della tua torcia.", connections: {} }
+                1: { name: "Entrate del tempio", description: "Le antiche porte di pietra si chiudono alle tue spalle. L'aria è fredda e umida. Davanti a te, il labirinto attende.", connections: { n: 2, s: 12, e: 13, w: null } },
+                2: { name: "Stanza buia", description: "Una stanza avvolta nell'oscurità, senti il fruscio di centinaia di ali.", connections: { s: 1, e: 3, w: null, n: null }, puzzle: { type: 'item', question: "La stanza è piena di pipistrelli, che oggetto intendi usare per attraversarla?", answer: "Torcia" } },
+                3: { name: "Stanza con chiave", description: "Su un piedistallo di pietra logoro, noti qualcosa di metallico che brilla debolmente.", connections: { w: 2, e: 4, n: null, s: null }, keyToCollect: 'k4' },
+                4: { name: "Stanza della saggezza", description: "Le pareti di questa stanza sono coperte di geroglifici indecifrabili. Un'aura di conoscenza pervade l'ambiente.", connections: { w: 3, s: 14, e: 5, n: null }, keyRequired: { e: 'k1' }, puzzle: { type: 'riddle', question: "Mi trovi nel presente, ma non posso essere toccato. Passo silenzioso, nessuno mi vede arrivare. Posso guarire o distruggere. Chi sono?", answer: "Tempo" } },
+                5: { name: "Stanza del gas", description: "L'aria in questa stanza è pesante e ha un odore acre. Senti la testa girare.", connections: { w: 4, s: 15, e: 6, n: null }, keyRequired: { w: 'k1', s: 'k1' }, puzzle: { type: 'item', question: "Hai azionato una trappola e la stanza si sta riempiendo di gas! Che oggetto vuoi usare?", answer: "Panno_bagnato" } },
+                6: { name: "Fontana", description: "Al centro della stanza c'è una fontana da cui sgorga acqua limpida e fresca. Il suono dell'acqua è un sollievo in questo silenzio opprimente.", connections: { w: 5, s: 7, n: null, e: null } },
+                7: { name: "Stanza dei fratelli", description: "Quattro grandi affreschi dominano le pareti, ognuno raffigurante una diversa scena della natura in perpetuo cambiamento.", connections: { n: 6, s: 8, w: 15, e: null }, keyRequired: { w: 'k3' }, puzzle: { type: 'riddle', question: "Fratelli corrono insieme, nessuno lascia mai il proprio cammino. A volte sono calmi, a volte in guerra, ma sempre si inseguono all'infinito.", answer: "Stagioni" } },
+                8: { name: "Stanza con chiave", description: "In una nicchia scavata nella parete, vedi una vecchia chiave arrugginita appesa a un gancio.", connections: { n: 7, w: 9, s: null, e: null }, keyToCollect: 'k3' },
+                9: { name: "Sedia", description: "Una singola sedia di legno si trova al centro di questa stanza vuota. Sembra un invito a riposare, ma non ti fidi.", connections: { e: 8, w: 10, n: 15, s: null }, keyRequired: { w: 'k4', n: 'k2' } },
+                10: { name: "Stanza dei buchi", description: "Le pareti, il soffitto e persino il pavimento sono costellati di piccoli fori scuri. Senti un leggero sibilo provenire da essi.", connections: { e: 9, w: 11, n: 14, s: null }, keyRequired: { e: 'k4' }, puzzle: { type: 'item', question: "La stanza è piena di buchi sulle pareti. Che oggetto vuoi usare per proseguire?", answer: "Scudo" } },
+                11: { name: "Stanza con chiave", description: "Una chiave di bronzo è incastonata in un blocco di cristallo al centro della stanza.", connections: { e: 10, w: 13, n: null, s: null }, keyToCollect: 'k1' },
+                12: { name: "Stanza misteriosa", description: "Una grande statua di un guerriero senza volto ti osserva dal fondo della stanza. La sua posa è minacciosa.", connections: { n: 1, e: 14, s: null, w: null }, puzzle: { type: 'riddle', question: "Ho occhi ma non posso vedere, una bocca ma non posso parlare, una forma umana ma non lo sono. Chi sono?", answer: "Statua" } },
+                13: { name: "Stanza opaca", description: "Questa stanza è innaturalmente buia. La luce della tua torcia sembra essere assorbita dalle pareti nere come la pece.", connections: { w: 1, s: 11, e: 14, n: null }, puzzle: { type: 'riddle', question: "Più passa il tempo, più divento grande. Vivo dove la luce non osa entrare. Un giorno conquistero' anche l'universo. Cosa sono?", answer: "Oscurità" } },
+                14: { name: "Stanza con chiave", description: "Appesa a una catena che pende dal soffitto, una chiave d'argento oscilla lentamente.", connections: { n: 4, s: 12, e: 10, w: 13 }, keyToCollect: 'k2' },
+                15: { name: "Stanza dell'acqua", description: "Il pavimento è coperto da uno strato d'acqua che sale rapidamente. Al centro, una leva arrugginita emerge appena dalla superficie.", connections: { n: 5, s: 9, e: 7, w: 16 }, keyRequired: { n: 'k1', s: 'k2', e: 'k3' }, puzzle: { type: 'item', question: "Le porte si sono chiuse e la stanza si sta riempiendo d'acqua! Vedi una leva quasi sommersa, che oggetto vuoi usare?", answer: "Asta_di_ferro" } },
+                16: { name: "Anticamera del tesoro", description: "Una porta massiccia e decorata blocca il passaggio. Un'iscrizione sopra di essa recita: 'Solo i saggi passeranno'.", connections: { e: 15, w: 17, n: null, s: null }, puzzle: { type: 'riddle', question: "Chi è che al mattino cammina con 4 zampe a mezzogiorno con 2 e la sera con 3?", answer: "Uomo", singleTry: true } },
+                17: { name: "Stanza del tesoro", description: "Ce l'hai fatta! La stanza è ricolma di oro, gioielli e antichi manufatti. La tua avventura è giunta a una gloriosa conclusione.", connections: { n: null, s: null, e: null, w: null } }
             }
         };
 
-        let player = {
+        let playerState = {
             currentRoom: 1,
             lives: 3,
             inventory: {
-                items: ["Torcia", "Panno_bagnato", "Scudo", "Asta_di_ferro"],
+                items: ['Torcia', 'Panno_bagnato', 'Scudo', 'Asta_di_ferro'],
                 keys: []
             },
+            solvedPuzzles: [],
             gameOver: false
         };
 
-        const dom = {
-            roomName: document.getElementById('room-name'),
-            livesDisplay: document.getElementById('lives-display'),
-            roomImage: document.getElementById('room-image'),
-            roomDescription: document.getElementById('room-description'),
-            messageArea: document.getElementById('message-area'),
-            itemList: document.getElementById('item-list'),
-            keyList: document.getElementById('key-list'),
-            movementControls: document.getElementById('movement-controls'),
-            puzzleControls: document.getElementById('puzzle-controls'),
-            puzzleInput: document.getElementById('puzzle-input'),
-            puzzleSubmit: document.getElementById('puzzle-submit'),
-            endScreen: document.getElementById('end-screen'),
-            endMessage: document.getElementById('end-message'),
-            buttons: {
-                n: document.getElementById('btn-n'),
-                s: document.getElementById('btn-s'),
-                e: document.getElementById('btn-e'),
-                w: document.getElementById('btn-w')
-            }
-        };
+        // DOM Elements
+        const roomNameEl = document.getElementById('room-name');
+        const livesEl = document.getElementById('lives');
+        const inventoryItemsEl = document.getElementById('inventory-items');
+        const inventoryKeysEl = document.getElementById('inventory-keys');
+        const roomImageEl = document.getElementById('room-image');
+        const roomDescriptionEl = document.getElementById('room-description');
+        const messageAreaEl = document.getElementById('message-area');
+        const movementButtonsEl = document.getElementById('movement-buttons');
+        const puzzleInterfaceEl = document.getElementById('puzzle-interface');
+        const puzzleQuestionEl = document.getElementById('puzzle-question');
+        const puzzleInputEl = document.getElementById('puzzle-input');
+        const victoryScreenEl = document.getElementById('victory-screen');
+        const gameOverScreenEl = document.getElementById('game-over-screen');
 
-        function initGame() {
-            player.currentRoom = 1;
-            player.lives = 3;
-            player.inventory.keys = [];
-            player.gameOver = false;
-            
-            // Reset puzzle states
-            for (const roomId in gameData.rooms) {
-                if (gameData.rooms[roomId].puzzle) {
-                    gameData.rooms[roomId].puzzle.solved = false;
-                }
-                if (gameData.rooms[roomId].keyToCollect) {
-                    gameData.rooms[roomId].keyCollected = false;
-                }
-            }
+        function updateUI() {
+            // Update lives
+            livesEl.textContent = '♥'.repeat(playerState.lives);
 
-            renderRoom(player.currentRoom);
-            renderInventory();
-            renderLives();
+            // Update inventory items
+            inventoryItemsEl.innerHTML = '';
+            playerState.inventory.items.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item.replace(/_/g, ' ');
+                inventoryItemsEl.appendChild(li);
+            });
+
+            // Update inventory keys
+            inventoryKeysEl.innerHTML = '';
+            playerState.inventory.keys.forEach(key => {
+                const li = document.createElement('li');
+                li.textContent = `Chiave ${key.toUpperCase()}`;
+                inventoryKeysEl.appendChild(li);
+            });
         }
 
         function renderRoom(roomId) {
-            if (player.gameOver) return;
+            if (playerState.gameOver) return;
 
             const room = gameData.rooms[roomId];
-            dom.roomName.textContent = room.name;
-            dom.roomDescription.textContent = room.description;
-            dom.roomImage.src = `jpg/${roomId}.jpg`;
-            dom.messageArea.textContent = '';
+            playerState.currentRoom = roomId;
+            messageAreaEl.textContent = '';
 
-            // Check for win condition
+            // Check for victory
             if (roomId === 17) {
-                winGame();
+                endGame('win');
                 return;
             }
 
-            // Check for key
-            if (room.keyToCollect && !room.keyCollected) {
-                collectKey(room.keyToCollect, roomId);
+            // Update room details
+            roomNameEl.textContent = room.name;
+            roomDescriptionEl.textContent = room.description;
+            roomImageEl.src = `${images_path}${roomId}.jpg`;
+            roomImageEl.alt = room.name;
+
+            // Check for keys to collect
+            if (room.keyToCollect && !playerState.inventory.keys.includes(room.keyToCollect)) {
+                playerState.inventory.keys.push(room.keyToCollect);
+                messageAreaEl.textContent = 'Hai trovato una chiave!';
             }
 
-            // Check for puzzle
-            if (room.puzzle && !room.puzzle.solved) {
-                renderPuzzle(room);
+            updateUI();
+
+            // Check for puzzles/traps
+            if (room.puzzle && !playerState.solvedPuzzles.includes(roomId)) {
+                presentPuzzle(room.puzzle);
             } else {
-                renderMovement(room);
+                showMovement();
             }
         }
 
-        function renderInventory() {
-            dom.itemList.innerHTML = player.inventory.items.map(item => `<li>${item.replace(/_/g, ' ')}</li>`).join('');
-            dom.keyList.innerHTML = player.inventory.keys.map(key => `<li>Chiave ${key.toUpperCase()}</li>`).join('');
+        function presentPuzzle(puzzle) {
+            movementButtonsEl.classList.add('hidden');
+            puzzleInterfaceEl.classList.remove('hidden');
+            puzzleQuestionEl.textContent = puzzle.question;
+            puzzleInputEl.value = '';
+            puzzleInputEl.focus();
         }
 
-        function renderLives() {
-            dom.livesDisplay.textContent = '♥'.repeat(player.lives);
-        }
 
-        function renderMovement(room) {
-            dom.puzzleControls.style.display = 'none';
-            dom.movementControls.style.display = 'block';
+        function showMovement() {
+            puzzleInterfaceEl.classList.add('hidden');
+            movementButtonsEl.classList.remove('hidden');
+            
+            const room = gameData.rooms[playerState.currentRoom];
+            const connections = room.connections;
+            const keyReqs = room.keyRequired || {};
 
-            const directions = ['n', 's', 'e', 'w'];
-            directions.forEach(dir => {
-                const targetRoomId = room.connections[dir];
-                const button = dom.buttons[dir];
+            ['n', 's', 'e', 'w'].forEach(dir => {
+                const btn = document.getElementById(`btn-${dir}`);
+                const targetRoom = connections[dir];
                 
-                if (targetRoomId) {
-                    button.disabled = false;
-                    const requiredKey = room.keyRequired ? room.keyRequired[dir] : null;
-                    if (requiredKey && !player.inventory.keys.includes(requiredKey)) {
-                        button.disabled = true;
+                if (targetRoom) {
+                    btn.style.visibility = 'visible';
+                    const requiredKey = keyReqs[dir];
+                    if (requiredKey && !playerState.inventory.keys.includes(requiredKey)) {
+                        btn.disabled = true;
+                    } else {
+                        btn.disabled = false;
                     }
                 } else {
-                    button.disabled = true;
+                    btn.style.visibility = 'hidden';
                 }
             });
         }
 
-        function renderPuzzle(room) {
-            dom.movementControls.style.display = 'none';
-            dom.puzzleControls.style.display = 'block';
-            dom.roomDescription.textContent = room.puzzle.question;
-            dom.puzzleInput.value = '';
-            dom.puzzleInput.focus();
-        }
-
         function move(direction) {
-            if (player.gameOver) return;
-            const currentRoomData = gameData.rooms[player.currentRoom];
-            const nextRoomId = currentRoomData.connections[direction];
+            if (playerState.gameOver) return;
+            const room = gameData.rooms[playerState.currentRoom];
+            const nextRoomId = room.connections[direction];
             if (nextRoomId) {
-                player.currentRoom = nextRoomId;
-                renderRoom(player.currentRoom);
+                renderRoom(nextRoomId);
             }
         }
 
-        function collectKey(keyId, roomId) {
-            if (!player.inventory.keys.includes(keyId)) {
-                player.inventory.keys.push(keyId);
-                gameData.rooms[roomId].keyCollected = true;
-                dom.messageArea.textContent = "Hai trovato una chiave!";
-                renderInventory();
-            }
-        }
+        function submitAnswer() {
+            if (playerState.gameOver) return;
 
-        function checkPuzzle() {
-            if (player.gameOver) return;
-
-            const room = gameData.rooms[player.currentRoom];
+            const room = gameData.rooms[playerState.currentRoom];
             const puzzle = room.puzzle;
-            const userAnswer = dom.puzzleInput.value.trim();
+            const userAnswer = puzzleInputEl.value.trim();
+            
             let isCorrect = false;
-
-            if (puzzle.type === 'riddle') {
-                isCorrect = userAnswer.toLowerCase() === puzzle.answer.toLowerCase();
-            } else { // object
+            if (puzzle.type === 'item') {
                 isCorrect = userAnswer === puzzle.answer;
+            } else { // riddle
+                isCorrect = userAnswer.toLowerCase() === puzzle.answer.toLowerCase();
             }
 
             if (isCorrect) {
-                puzzle.solved = true;
-                dom.messageArea.textContent = "Corretto! Il passaggio è ora sicuro.";
-                renderRoom(player.currentRoom);
+                messageAreaEl.textContent = 'Corretto! La via è libera.';
+                playerState.solvedPuzzles.push(playerState.currentRoom);
+                showMovement();
             } else {
-                dom.messageArea.textContent = "Sbagliato! Hai subito un danno.";
+                messageAreaEl.textContent = 'Sbagliato! Hai attivato una trappola.';
                 if (puzzle.singleTry) {
-                    player.lives = 0; // Instant game over for the final riddle
-                    gameOver("L'enigma finale ti è stato fatale.");
+                    while(playerState.lives > 0) {
+                        loseLife();
+                    }
                 } else {
                     loseLife();
                 }
@@ -426,39 +409,37 @@
         }
 
         function loseLife() {
-            if (player.lives > 0) {
-                player.lives--;
-                renderLives();
+            if (playerState.lives > 0) {
+                playerState.lives--;
+                updateUI();
+                if (playerState.lives === 0) {
+                    endGame('lose');
+                }
             }
-            if (player.lives <= 0) {
-                gameOver("Sei rimasto senza vite.");
+        }
+
+        function endGame(outcome) {
+            playerState.gameOver = true;
+            document.getElementById('game-container').classList.add('hidden');
+            if (outcome === 'win') {
+                victoryScreenEl.classList.remove('hidden');
+            } else {
+                gameOverScreenEl.classList.remove('hidden');
             }
         }
 
-        function gameOver(message) {
-            player.gameOver = true;
-            dom.endMessage.textContent = `Game Over! ${message}`;
-            dom.endScreen.style.display = 'flex';
-        }
-
-        function winGame() {
-            player.gameOver = true;
-            dom.endMessage.textContent = "Congratulazioni! Hai trovato il tesoro!";
-            dom.endScreen.style.display = 'flex';
-        }
-
-        function restartGame() {
-            window.location.reload();
-        }
-
-        dom.puzzleSubmit.addEventListener('click', checkPuzzle);
-        dom.puzzleInput.addEventListener('keyup', function(event) {
+        // Handle Enter key for puzzle submission
+        puzzleInputEl.addEventListener('keyup', function(event) {
             if (event.key === "Enter") {
-                checkPuzzle();
+                event.preventDefault();
+                document.getElementById('btn-submit').click();
             }
         });
 
-        document.addEventListener('DOMContentLoaded', initGame);
+        // Initial game setup
+        window.onload = () => {
+            renderRoom(playerState.currentRoom);
+        };
     </script>
 
 </body>

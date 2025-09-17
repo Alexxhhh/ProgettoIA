@@ -66,7 +66,7 @@ LAYOUT
 ──────
 - Room name at top; lives (♥ icons) top-right (update instantly).  
 - Inventory panel on the left (items + keys).  
-- **Each room shows an image that you must take from the directory jpg whose path is contain in variable images_path remeber the name of the file remeber the name of the file contained in the directory jpg corresponds to the number of the room.**  
+- **Each room shows an image that you must take from the directory jpg whose path is contain in variable images_path remeber the name of the file contained in the directory jpg correspond to the number of the room.**  
 - Room image centered; description immediately below.  
 - Movement buttons (N S E W) below description when available.  
 - Puzzle/trap interface replaces movement buttons while active.  
@@ -74,7 +74,7 @@ LAYOUT
 - Victory page (upon reaching treasure_room alive): “Congratulazioni! Hai trovato il tesoro!”
 - Game Over page (upon losing all lives): “Game Over! Sei rimasto senza vite.
 - Restart button on Victory and Game Over pages to reload the game. 
--the dimesion of the image is 600x400 px
+
 
 
 VISUAL / INTERACTION REQUIREMENTS
