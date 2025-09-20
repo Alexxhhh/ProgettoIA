@@ -1,66 +1,113 @@
 (define (domain treasure_quest)
-  (:requirements :strips :typing :negative-preconditions)
-  (:types room key item puzzle direction)
-  (:predicates
-    (at ?r - room) ; agent is at room ?r
-    (connected ?a - room ?b - room ?d - direction) ; room ?a is connected to room ?b in direction ?d
-    (locked ?r - room) ; room ?r is locked
-    (key_opens ?k - key ?r - room) ; key ?k opens room ?r
-    (has_key ?k - key) ; agent has key ?k
-    (has_item ?i - item) ; agent has item ?i
-    (key_in_room ?k - key ?r - room) ; key ?k is in room ?r
-    (trap_item_room ?r - room ?i - item) ; item ?i is needed for trap in room ?r
-    (trap_active ?r - room) ; trap is active in room ?r
-    (puzzle_in_room ?p - puzzle ?r - room) ; puzzle ?p is in room ?r
-    (answer_known ?p - puzzle) ; agent knows the answer to puzzle ?p
-    (life1) ; agent has life1
-    (life2) ; agent has life2
-    (life3) ; agent has life3
+  (:requirements :strips :typing :negative-preconditions) ; define requirements for the planner
+
+  (:types ; define the types of objects in the world
+    room key item puzzle direction
+  )
+
+  (:predicates ; define the properties and relationships of objects
+    (at ?r - room) ; agent is currently in room ?r
+    (connected ?a - room ?b - room ?d - direction) ; room ?a is connected to room ?b via direction ?d
+    (locked ?r - room) ; room ?r is locked and cannot be entered
+    (key_opens ?k - key ?r - room) ; key ?k can open the lock on room ?r
+    (has_key ?k - key) ; agent possesses key ?k
+    (has_item ?i - item) ; agent possesses item ?i
+    (key_in_room ?k - key ?r - room) ; key ?k is located in room ?r
+    (trap_item_room ?r - room ?i - item) ; room ?r has a trap that requires item ?i
+    (trap_active ?r - room) ; the trap in room ?r is currently active
+    (puzzle_in_room ?p - puzzle ?r - room) ; puzzle ?p is located in room ?r
+    (answer_known ?p - puzzle) ; the agent knows the answer to puzzle ?p
+    (life3) ; agent has 3rd life point
+    (life2) ; agent has 2nd life point
+    (life1) ; agent has 1st life point
     (dead) ; agent is dead
   )
-  (:action move
-    :parameters (?from - room ?to - room ?dir - direction)
-    :precondition (and (at ?from) (connected ?from ?to ?dir) (not (locked ?to)) (not (dead))) ; agent is at ?from, connected to ?to, ?to is not locked, agent is not dead
-    :effect (and (at ?to) (not (at ?from))) ; agent moves from ?from to ?to
+
+  (:action move ; move from one room to an adjacent one
+    :parameters (?from - room ?to - room ?d - direction)
+    :precondition (and
+      (at ?from) ; must be in the starting room
+      (connected ?from ?to ?d) ; the rooms must be connected
+      (not (locked ?to)) ; the destination room must not be locked
+      (not (dead)) ; the agent must be alive
+    )
+    :effect (and
+      (not (at ?from)) ; no longer in the starting room
+      (at ?to) ; now in the destination room
+    )
   )
-  (:action unlock
-    :parameters (?r - room ?k - key)
-    :precondition (and (at ?r) (locked ?r) (has_key ?k) (key_opens ?k ?r)) ; agent is at ?r, ?r is locked, agent has key ?k, ?k opens ?r
-    :effect (and (not (locked ?r))) ; ?r is unlocked
+
+  (:action unlock ; unlock a door to an adjacent room
+    :parameters (?from - room ?to - room ?d - direction ?k - key)
+    :precondition (and
+      (at ?from) ; must be in the room adjacent to the locked one
+      (connected ?from ?to ?d) ; must be a connection to the locked room
+      (has_key ?k) ; must have a key
+      (key_opens ?k ?to) ; the key must be the correct one for the room
+      (locked ?to) ; the destination room must be locked
+      (not (dead)) ; the agent must be alive
+    )
+    :effect (and
+      (not (locked ?to)) ; the room is no longer locked
+    )
   )
-  (:action use_item_trap
-    :parameters (?r - room ?i - item)
-    :precondition (and (at ?r) (trap_active ?r) (has_item ?i) (trap_item_room ?r ?i)) ; agent is at ?r, trap is active, agent has item ?i, ?i is needed for trap in ?r
-    :effect (and (not (trap_active ?r))) ; trap is deactivated
-  )
-  (:action solve_puzzle
-    :parameters (?r - room ?p - puzzle)
-    :precondition (and (at ?r) (puzzle_in_room ?p ?r) (trap_active ?r) (answer_known ?p)) ; agent is at ?r, puzzle ?p is in ?r, trap is active, answer is known
-    :effect (and (not (trap_active ?r))) ; trap is deactivated
-  )
-  (:action pickup_key
+
+  (:action pickup_key ; pick up a key from the current room
     :parameters (?k - key ?r - room)
-    :precondition (and (at ?r) (key_in_room ?k ?r) (not (has_key ?k))) ; agent is at ?r, key ?k is in ?r, agent doesn't have ?k
-    :effect (and (has_key ?k) (not (key_in_room ?k ?r))) ; agent picks up key ?k
+    :precondition (and
+      (at ?r) ; must be in the room with the key
+      (key_in_room ?k ?r) ; the key must be in the room
+      (not (dead)) ; the agent must be alive
+    )
+    :effect (and
+      (has_key ?k) ; agent now has the key
+      (not (key_in_room ?k ?r)) ; key is no longer in the room
+    )
   )
-  (:action pickup_item
-    :parameters (?i - item ?r - room)
-    :precondition (and (at ?r) (trap_item_room ?r ?i) (not (has_item ?i))) ; agent is at ?r, item ?i is in ?r, agent doesn't have ?i
-    :effect (and (has_item ?i)) ; agent picks up item ?i
+
+  (:action use_item_trap ; use an item to disable a trap in the current room
+    :parameters (?r - room ?i - item)
+    :precondition (and
+      (at ?r) ; must be in the room with the trap
+      (trap_active ?r) ; the trap must be active
+      (trap_item_room ?r ?i) ; the room's trap must require this item
+      (has_item ?i) ; agent must possess the required item
+      (not (dead)) ; the agent must be alive
+    )
+    :effect (and
+      (not (trap_active ?r)) ; the trap is now disabled
+    )
   )
-  (:action lose_life3
-  :parameters ()                               ; nessun parametro
-  :precondition (and (life3))                  ; richiede di avere life3
-  :effect       (and (not (life3)))            ; toglie life3
+
+  (:action solve_puzzle ; solve a puzzle to disable a trap in the current room
+    :parameters (?p - puzzle ?r - room)
+    :precondition (and
+      (at ?r) ; must be in the room with the puzzle
+      (puzzle_in_room ?p ?r) ; the puzzle must be in this room
+      (answer_known ?p) ; the agent must know the answer
+      (trap_active ?r) ; the trap associated with the puzzle must be active
+      (not (dead)) ; the agent must be alive
+    )
+    :effect (and
+      (not (trap_active ?r)) ; the trap is now disabled
+    )
   )
-  (:action lose_life2
-    :parameters ()                              
-    :precondition (and (not (life3)) (life2)) ; agent doesn't have life3, but has life2
-    :effect (and (not (life2))) ; agent loses life2
+
+  (:action lose_life3 ; lose the third life point
+    :parameters ()
+    :precondition (and (life3)) ; must have life 3 to lose it
+    :effect (and (not (life3))) ; life 3 is lost
   )
-  (:action lose_life1
-    :parameters () 
-    :precondition (and (not (life3)) (not (life2)) (life1)) ; agent doesn't have life3 or life2, but has life1
-    :effect (and (not (life1)) (dead)) ; agent loses life1 and dies
+
+  (:action lose_life2 ; lose the second life point
+    :parameters ()
+    :precondition (and (not (life3)) (life2)) ; must have lost life 3 and have life 2
+    :effect (and (not (life2))) ; life 2 is lost
+  )
+
+  (:action lose_life1 ; lose the final life point and die
+    :parameters ()
+    :precondition (and (not (life3)) (not (life2)) (life1)) ; must have lost lives 3 and 2, and have life 1
+    :effect (and (not (life1)) (dead)) ; life 1 is lost and agent is dead
   )
 )

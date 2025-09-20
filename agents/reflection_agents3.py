@@ -18,11 +18,11 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 # 1.  Chiave API fissa (o da env-var)
 # ───────────────────────────────────
 # imposta l'API-key sia in variabile d'ambiente sia come parametro
-API_KEY = "AIzaSyC-JBjbsQtI66ybyMA-b6C0Zrey5bB9X5E"
-os.environ["GOOGLE_API_KEY"] = API_KEY          # <── AGGIUNGI
+API_KEY = "AIzaSyAwX8CohVzXyslpR5Wn1l37ZGSRTExfAiY"
+os.environ["GOOGLE_API_KEY"] = API_KEY        
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-flash-latest",
-    temperature=0.15,
+    model="gemini-2.5-pro",
+    temperature=0.00,
     google_api_key=API_KEY,
 )
 OUTPUT_DIR = Path("./pddl_output")
@@ -108,7 +108,7 @@ LORE:
 # ───────────────────────────────────
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        sys.exit("Uso: python3 reflection_agents3.py path/to/lore.txt")
+        sys.exit("Uso: python3 reflection_agents3.py ../ProgettoIA/lore/lore_2_s.txt ")
 
     res = generate_pddl_from_lore(sys.argv[1])
     print("\n── DOMAIN preview ──\n", res["domain"][:600])
